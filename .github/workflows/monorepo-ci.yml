@@ -13,19 +13,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  project-quality:
-    name: ${{ matrix.project.name }} quality gates
+  lint:
+    name: lint
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        project:
-          # Add 2..N project entries here.
-          # path must be relative to repo root.
-          - name: license_management
-            path: python/license_management
-            python: "3.11.9"
-            test_cmd: uv run pytest
+    env:
+      PROJECT_PATH: python/license_management
+      PYTHON_VERSION: "3.11.9"
 
     steps:
       - name: Checkout
@@ -37,14 +30,14 @@ jobs:
         with:
           filters: |
             project:
-              - '${{ matrix.project.path }}/**'
+              - '${{ env.PROJECT_PATH }}/**'
               - '.github/workflows/monorepo-ci.yml'
 
       - name: Check project directory exists
         id: project_dir
         shell: pwsh
         run: |
-          if (Test-Path "${{ matrix.project.path }}") {
+          if (Test-Path "${{ env.PROJECT_PATH }}") {
             "exists=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           } else {
             "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
@@ -54,7 +47,7 @@ jobs:
         if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.project.python }}
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Setup uv
         if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
@@ -62,35 +55,150 @@ jobs:
 
       - name: Sync dependencies
         if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
-        working-directory: ${{ matrix.project.path }}
+        working-directory: ${{ env.PROJECT_PATH }}
         run: uv sync --all-groups
 
       - name: Ruff lint
         if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
-        working-directory: ${{ matrix.project.path }}
+        working-directory: ${{ env.PROJECT_PATH }}
         run: uv run ruff check .
 
       - name: Black format check
         if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
-        working-directory: ${{ matrix.project.path }}
+        working-directory: ${{ env.PROJECT_PATH }}
         run: uv run black --check .
 
       - name: Mypy type check
         if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
-        working-directory: ${{ matrix.project.path }}
+        working-directory: ${{ env.PROJECT_PATH }}
         run: uv run mypy src tests
 
-      - name: Pytest with coverage
-        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
-        working-directory: ${{ matrix.project.path }}
-        run: ${{ matrix.project.test_cmd }}
-
-      - name: Skip unchanged project
+      - name: Skip lint checks
         if: steps.changed.outputs.project != 'true' || steps.project_dir.outputs.exists != 'true'
         shell: pwsh
         run: |
           if ("${{ steps.changed.outputs.project }}" -ne "true") {
-            echo "No changes for ${{ matrix.project.name }}, skipping."
+            echo "No changes for lint, skipping."
           } elseif ("${{ steps.project_dir.outputs.exists }}" -ne "true") {
-            echo "Project path ${{ matrix.project.path }} does not exist in this branch, skipping."
+            echo "Project path ${{ env.PROJECT_PATH }} does not exist in this branch, skipping lint."
+          }
+
+  unit-test:
+    name: unit-test
+    runs-on: windows-latest
+    env:
+      PROJECT_PATH: python/license_management
+      PYTHON_VERSION: "3.11.9"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed files for this project
+        id: changed
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            project:
+              - '${{ env.PROJECT_PATH }}/**'
+              - '.github/workflows/monorepo-ci.yml'
+
+      - name: Check project directory exists
+        id: project_dir
+        shell: pwsh
+        run: |
+          if (Test-Path "${{ env.PROJECT_PATH }}") {
+            "exists=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          } else {
+            "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          }
+
+      - name: Setup Python
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup uv
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        uses: astral-sh/setup-uv@v3
+
+      - name: Sync dependencies
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        working-directory: ${{ env.PROJECT_PATH }}
+        run: uv sync --all-groups
+
+      - name: Run pytest
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        working-directory: ${{ env.PROJECT_PATH }}
+        run: uv run pytest
+
+      - name: Skip unit tests
+        if: steps.changed.outputs.project != 'true' || steps.project_dir.outputs.exists != 'true'
+        shell: pwsh
+        run: |
+          if ("${{ steps.changed.outputs.project }}" -ne "true") {
+            echo "No changes for unit-test, skipping."
+          } elseif ("${{ steps.project_dir.outputs.exists }}" -ne "true") {
+            echo "Project path ${{ env.PROJECT_PATH }} does not exist in this branch, skipping unit-test."
+          }
+
+  build:
+    name: build
+    runs-on: windows-latest
+    env:
+      PROJECT_PATH: python/license_management
+      PYTHON_VERSION: "3.11.9"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed files for this project
+        id: changed
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            project:
+              - '${{ env.PROJECT_PATH }}/**'
+              - '.github/workflows/monorepo-ci.yml'
+
+      - name: Check project directory exists
+        id: project_dir
+        shell: pwsh
+        run: |
+          if (Test-Path "${{ env.PROJECT_PATH }}") {
+            "exists=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          } else {
+            "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          }
+
+      - name: Setup Python
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Setup uv
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        uses: astral-sh/setup-uv@v3
+
+      - name: Sync dependencies
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        working-directory: ${{ env.PROJECT_PATH }}
+        run: uv sync --all-groups
+
+      - name: Build smoke check
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        working-directory: ${{ env.PROJECT_PATH }}
+        run: uv run python -m compileall src
+
+      - name: Skip build
+        if: steps.changed.outputs.project != 'true' || steps.project_dir.outputs.exists != 'true'
+        shell: pwsh
+        run: |
+          if ("${{ steps.changed.outputs.project }}" -ne "true") {
+            echo "No changes for build, skipping."
+          } elseif ("${{ steps.project_dir.outputs.exists }}" -ne "true") {
+            echo "Project path ${{ env.PROJECT_PATH }} does not exist in this branch, skipping build."
           }
