@@ -26,10 +26,6 @@ jobs:
             path: python/license_management
             python: "3.11.9"
             test_cmd: uv run pytest
-          - name: another_project
-            path: python/another_project
-            python: "3.11.9"
-            test_cmd: uv run pytest
 
     defaults:
       run:
