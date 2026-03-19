@@ -27,10 +27,6 @@ jobs:
             python: "3.11.9"
             test_cmd: uv run pytest
 
-    defaults:
-      run:
-        working-directory: ${{ matrix.project.path }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,36 +40,57 @@ jobs:
               - '${{ matrix.project.path }}/**'
               - '.github/workflows/monorepo-ci.yml'
 
+      - name: Check project directory exists
+        id: project_dir
+        shell: pwsh
+        run: |
+          if (Test-Path "${{ matrix.project.path }}") {
+            "exists=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          } else {
+            "exists=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          }
+
       - name: Setup Python
-        if: steps.changed.outputs.project == 'true'
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.project.python }}
 
       - name: Setup uv
-        if: steps.changed.outputs.project == 'true'
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
         uses: astral-sh/setup-uv@v3
 
       - name: Sync dependencies
-        if: steps.changed.outputs.project == 'true'
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        working-directory: ${{ matrix.project.path }}
         run: uv sync --all-groups
 
       - name: Ruff lint
-        if: steps.changed.outputs.project == 'true'
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        working-directory: ${{ matrix.project.path }}
         run: uv run ruff check .
 
       - name: Black format check
-        if: steps.changed.outputs.project == 'true'
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        working-directory: ${{ matrix.project.path }}
         run: uv run black --check .
 
       - name: Mypy type check
-        if: steps.changed.outputs.project == 'true'
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        working-directory: ${{ matrix.project.path }}
         run: uv run mypy src tests
 
       - name: Pytest with coverage
-        if: steps.changed.outputs.project == 'true'
+        if: steps.changed.outputs.project == 'true' && steps.project_dir.outputs.exists == 'true'
+        working-directory: ${{ matrix.project.path }}
         run: ${{ matrix.project.test_cmd }}
 
       - name: Skip unchanged project
-        if: steps.changed.outputs.project != 'true'
-        run: echo "No changes for ${{ matrix.project.name }}, skipping."
+        if: steps.changed.outputs.project != 'true' || steps.project_dir.outputs.exists != 'true'
+        shell: pwsh
+        run: |
+          if ("${{ steps.changed.outputs.project }}" -ne "true") {
+            echo "No changes for ${{ matrix.project.name }}, skipping."
+          } elseif ("${{ steps.project_dir.outputs.exists }}" -ne "true") {
+            echo "Project path ${{ matrix.project.path }} does not exist in this branch, skipping."
+          }
