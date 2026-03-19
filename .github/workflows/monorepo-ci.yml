@@ -1,0 +1,83 @@
+name: monorepo-ci
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "python/**"
+      - ".github/workflows/monorepo-ci.yml"
+  pull_request:
+    paths:
+      - "python/**"
+      - ".github/workflows/monorepo-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  project-quality:
+    name: ${{ matrix.project.name }} quality gates
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          # Add 2..N project entries here.
+          # path must be relative to repo root.
+          - name: license_management
+            path: projects/license_management
+            python: "3.11.9"
+            test_cmd: uv run pytest
+          - name: another_project
+            path: projects/another_project
+            python: "3.11.9"
+            test_cmd: uv run pytest
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.project.path }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed files for this project
+        id: changed
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            project:
+              - '${{ matrix.project.path }}/**'
+              - '.github/workflows/monorepo-ci.yml'
+
+      - name: Setup Python
+        if: steps.changed.outputs.project == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.project.python }}
+
+      - name: Setup uv
+        if: steps.changed.outputs.project == 'true'
+        uses: astral-sh/setup-uv@v3
+
+      - name: Sync dependencies
+        if: steps.changed.outputs.project == 'true'
+        run: uv sync --all-groups
+
+      - name: Ruff lint
+        if: steps.changed.outputs.project == 'true'
+        run: uv run ruff check .
+
+      - name: Black format check
+        if: steps.changed.outputs.project == 'true'
+        run: uv run black --check .
+
+      - name: Mypy type check
+        if: steps.changed.outputs.project == 'true'
+        run: uv run mypy src tests
+
+      - name: Pytest with coverage
+        if: steps.changed.outputs.project == 'true'
+        run: ${{ matrix.project.test_cmd }}
+
+      - name: Skip unchanged project
+        if: steps.changed.outputs.project != 'true'
+        run: echo "No changes for ${{ matrix.project.name }}, skipping."
