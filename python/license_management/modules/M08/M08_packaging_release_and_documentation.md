@@ -92,11 +92,17 @@
 - T8.1 第一批已完成，交付打包清单/校验工具与集成测试。
 - Added manifest generation and checksum write path for release artifact verification.
 - 已新增发布制品清单生成与校验写出路径，用于产物校验。
+- T8.2 completed with clean-machine installation validation utility and tests.
+- T8.2 已完成，交付净机安装验证工具与测试。
+- T8.3 completed with user guide and operations runbook delivery.
+- T8.3 已完成，已交付用户手册与运维手册。
+- T8.4 completed with release note/publish record utility and release note sample.
+- T8.4 已完成，交付发布说明/发布记录工具与发布说明样例。
 
 ## Next Action
 ## 下一步
-- Continue T8.1/T8.2 by adding clean-machine style installation verification script and validation matrix records.
-- 继续推进 T8.1/T8.2：补充纯净机安装验证脚本与验证矩阵记录。
+- M08 module closure completed; hand over to M09 operations cadence execution.
+- M08 模块已完成收敛，进入 M09 运维节奏执行。
 
 ## Risks and Mitigation
 ## 风险与缓解
