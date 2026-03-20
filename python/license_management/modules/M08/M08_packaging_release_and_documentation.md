@@ -86,6 +86,18 @@
 - M07 completed
 - M07已完成。
 
+## Current Progress Snapshot
+## 当前进度快照
+- T8.1 first batch completed with packaging manifest/checksum utility and integration tests.
+- T8.1 第一批已完成，交付打包清单/校验工具与集成测试。
+- Added manifest generation and checksum write path for release artifact verification.
+- 已新增发布制品清单生成与校验写出路径，用于产物校验。
+
+## Next Action
+## 下一步
+- Continue T8.1/T8.2 by adding clean-machine style installation verification script and validation matrix records.
+- 继续推进 T8.1/T8.2：补充纯净机安装验证脚本与验证矩阵记录。
+
 ## Risks and Mitigation
 ## 风险与缓解
 - Risk: Packaging misses runtime dependencies.

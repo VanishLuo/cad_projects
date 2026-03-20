@@ -80,6 +80,18 @@
 - M08 completed
 - M08已完成。
 
+## Current Progress Snapshot
+## 当前进度快照
+- T9.1 first batch completed with telemetry event triage model and severity/value classification.
+- T9.1 第一批已完成，交付遥测事件分诊模型及严重度/价值分类逻辑。
+- Added triage integration tests to validate owner queue mapping and severity thresholds.
+- 已新增分诊集成测试，验证责任队列映射与严重度阈值。
+
+## Next Action
+## 下一步
+- Continue T9.1/T9.2 by adding backlog snapshot generation and weekly operations report templates.
+- 继续推进 T9.1/T9.2：补充待办快照生成与周运维报告模板。
+
 ## Risks and Mitigation
 ## 风险与缓解
 - Risk: Feedback loop not closed quickly.
