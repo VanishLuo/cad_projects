@@ -100,11 +100,17 @@
 - 新增核心流程与非法输入恢复路径的 E2E 用户旅程测试。
 - T7.1 second batch completed with E2E search/filter matrix and Windows compatibility probes.
 - T7.1 第二批已完成，补充 E2E 搜索/筛选矩阵与 Windows 兼容性探针。
+- T7.2 execution baseline completed with deployment profile matrix validation.
+- T7.2 执行基线已完成，覆盖部署配置矩阵验证。
+- T7.3 execution baseline completed with 20/24 capacity and 8-cycle start/stop stability checks.
+- T7.3 执行基线已完成，覆盖 20/24 容量与 8 轮启停稳定性检查。
+- T7.4 regression gate baseline completed with core flow consistency and validation recovery checks.
+- T7.4 回归闸门基线已完成，覆盖核心流程一致性与校验恢复检查。
 
 ## Next Action
 ## 下一步
-- Start T7.2 execution: expand Windows version/deployment matrix and capture compatibility evidence reports.
-- 开始执行 T7.2：扩展 Windows 版本/部署矩阵，并沉淀兼容性证据报告。
+- Consolidate M07 evidence package and prepare release readiness summary.
+- 汇总 M07 证据包并准备发布就绪性总结。
 
 ## Risks and Mitigation
 ## 风险与缓解
