@@ -80,6 +80,20 @@
 - M03 completed
 - M03已完成。
 
+## Current Progress Snapshot
+## 当前进度快照
+- T4.1 completed with in-memory repository CRUD and unit tests.
+- T4.1 已完成，已交付内存仓储CRUD与单元测试。
+- T4.2 completed baseline migration/version tracking utility (SchemaMigrator).
+- T4.2 已完成，已交付基线迁移与版本跟踪工具（SchemaMigrator）。
+- T4.3 completed backup/restore rollback utility and failure rollback test.
+- T4.3 已完成，已交付备份恢复回滚工具与失败回滚测试。
+
+## Next Module Entry
+## 下一模块入口
+- Proceed to M05 (Business Service and Provider Adapter), starting from T5.1 import pipeline.
+- 继续进入M05（业务服务与服务商适配），从T5.1导入流程开始。
+
 ## Risks and Mitigation
 ## 风险与缓解
 - Risk: Schema changes break compatibility.
