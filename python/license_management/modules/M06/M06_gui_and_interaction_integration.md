@@ -86,6 +86,24 @@
 - M05 completed
 - M05已完成。
 
+## Current Progress Snapshot
+## 当前进度快照
+- T6.1 completed main list view model with global search/filter and expiration status highlight mapping.
+- T6.1 已完成主列表视图模型，支持全局搜索/筛选与到期状态高亮映射。
+- T6.2 completed dialog flow binder for add/edit/import/start-stop/compare/export actions.
+- T6.2 已完成新增编辑/导入/启停/比对/导出弹窗流程绑定。
+- T6.3 completed validation and feedback integration with structured issue and message models.
+- T6.3 已完成校验与反馈集成，提供结构化问题与消息模型。
+- T6.4 completed feature-level search controller with combined filters, reset behavior, and result term marking.
+- T6.4 已完成 feature 级搜索控制器，支持组合筛选、重置行为与命中词标记。
+- Unit tests cover view model, dialog flow binding, validation feedback, and feature search orchestration.
+- 单元测试已覆盖视图模型、弹窗流程绑定、校验反馈与 feature 搜索编排。
+
+## Next Module Entry
+## 下一模块入口
+- Proceed to M07 test and quality validation tasks.
+- 继续进入 M07 测试与质量验证任务。
+
 ## Risks and Mitigation
 ## 风险与缓解
 - Risk: UI and service contract mismatch.
