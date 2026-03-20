@@ -98,11 +98,13 @@
 - 新增 GUI-服务绑定的集成覆盖，包含导入、搜索与操作反馈。
 - Added E2E user-journey tests for core flow and invalid-input recovery path.
 - 新增核心流程与非法输入恢复路径的 E2E 用户旅程测试。
+- T7.1 second batch completed with E2E search/filter matrix and Windows compatibility probes.
+- T7.1 第二批已完成，补充 E2E 搜索/筛选矩阵与 Windows 兼容性探针。
 
 ## Next Action
 ## 下一步
-- Continue T7.1 second batch: enrich E2E matrix and introduce Windows-focused compatibility probes for T7.2 preparation.
-- 继续 T7.1 第二批：扩展 E2E 矩阵，并引入面向 Windows 的兼容性探针，为 T7.2 做准备。
+- Start T7.2 execution: expand Windows version/deployment matrix and capture compatibility evidence reports.
+- 开始执行 T7.2：扩展 Windows 版本/部署矩阵，并沉淀兼容性证据报告。
 
 ## Risks and Mitigation
 ## 风险与缓解
