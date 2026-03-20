@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from typing import Any
 
 import pytest
 
@@ -37,7 +38,7 @@ def _record(
     ],
 )
 def test_e2e_search_filter_matrix(
-    search_kwargs: dict[str, object], expected_ids: list[str]
+    search_kwargs: dict[str, Any], expected_ids: list[str]
 ) -> None:
     vm = MainListViewModel(warning_days=30)
     vm.load(
