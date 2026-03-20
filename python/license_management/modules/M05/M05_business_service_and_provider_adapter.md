@@ -96,17 +96,21 @@
 
 ## Current Progress Snapshot
 ## 当前进度快照
-- T5.1 completed with JSON single-file and batch import pipeline service.
-- T5.1 已完成，已交付JSON单文件与批量导入流程服务。
-- T5.2 completed with field validation, deduplication strategy, and enriched import report.
-- T5.2 已完成，已交付字段校验、去重策略与增强导入报告。
-- Unit tests now cover success, invalid payload, and duplicate scenarios.
-- 单元测试已覆盖成功、非法载荷与重复数据场景。
+- T5.1 completed import pipeline baseline and single/batch entry handling.
+- T5.1 已完成导入流程基线与单条/批量入口处理。
+- T5.2 completed validation, deduplication, and report generation enhancements.
+- T5.2 已完成校验、去重与报告生成增强。
+- T5.3 completed expiration/reminder state engine and unit tests.
+- T5.3 已完成到期提醒状态引擎与单元测试。
+- T5.4 completed FlexNet SSH start/stop adapter with timeout, retry, rollback, and audit logs.
+- T5.4 已完成 FlexNet SSH 启停适配器，覆盖超时、重试、回退与审计日志。
+- T5.5 completed cross-target compare service with deterministic diff output.
+- T5.5 已完成跨目标比对服务，输出稳定可复现。
 
-## Next Action
-## 下一步
-- Continue T5.3: implement expiration calculation and reminder state generation.
-- 继续T5.3：实现到期计算与提醒状态生成。
+## Next Module Entry
+## 下一模块入口
+- Proceed to M06 (GUI and Interaction Integration), starting from T6.1 main list/search/status UI.
+- 继续进入 M06（GUI与交互集成），从 T6.1 主列表/搜索/状态界面开始。
 
 ## Risks and Mitigation
 ## 风险与缓解
