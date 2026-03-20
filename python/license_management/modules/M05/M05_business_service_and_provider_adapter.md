@@ -94,6 +94,20 @@
 - M04 completed
 - M04已完成。
 
+## Current Progress Snapshot
+## 当前进度快照
+- T5.1 completed with JSON single-file and batch import pipeline service.
+- T5.1 已完成，已交付JSON单文件与批量导入流程服务。
+- T5.2 completed with field validation, deduplication strategy, and enriched import report.
+- T5.2 已完成，已交付字段校验、去重策略与增强导入报告。
+- Unit tests now cover success, invalid payload, and duplicate scenarios.
+- 单元测试已覆盖成功、非法载荷与重复数据场景。
+
+## Next Action
+## 下一步
+- Continue T5.3: implement expiration calculation and reminder state generation.
+- 继续T5.3：实现到期计算与提醒状态生成。
+
 ## Risks and Mitigation
 ## 风险与缓解
 - Risk: Provider command variability.
