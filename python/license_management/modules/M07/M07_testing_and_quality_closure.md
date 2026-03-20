@@ -90,6 +90,20 @@
 - M06 completed
 - M06已完成。
 
+## Current Progress Snapshot
+## 当前进度快照
+- T7.1 first batch completed for integration and E2E baseline test scaffolding.
+- T7.1 第一批已完成集成与E2E基线测试脚手架。
+- Added integration coverage for GUI-service binding across import, search, and operation feedback.
+- 新增 GUI-服务绑定的集成覆盖，包含导入、搜索与操作反馈。
+- Added E2E user-journey tests for core flow and invalid-input recovery path.
+- 新增核心流程与非法输入恢复路径的 E2E 用户旅程测试。
+
+## Next Action
+## 下一步
+- Continue T7.1 second batch: enrich E2E matrix and introduce Windows-focused compatibility probes for T7.2 preparation.
+- 继续 T7.1 第二批：扩展 E2E 矩阵，并引入面向 Windows 的兼容性探针，为 T7.2 做准备。
+
 ## Risks and Mitigation
 ## 风险与缓解
 - Risk: Late defects delay release.
