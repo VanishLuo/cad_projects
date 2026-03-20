@@ -37,9 +37,7 @@ def _record(
         ({"expires_before": date(2026, 5, 5)}, ["rec-004"]),
     ],
 )
-def test_e2e_search_filter_matrix(
-    search_kwargs: dict[str, Any], expected_ids: list[str]
-) -> None:
+def test_e2e_search_filter_matrix(search_kwargs: dict[str, Any], expected_ids: list[str]) -> None:
     vm = MainListViewModel(warning_days=30)
     vm.load(
         [
