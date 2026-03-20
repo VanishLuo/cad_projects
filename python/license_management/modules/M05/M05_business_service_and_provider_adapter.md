@@ -94,6 +94,24 @@
 - M04 completed
 - M04已完成。
 
+## Current Progress Snapshot
+## 当前进度快照
+- T5.1 completed import pipeline baseline and single/batch entry handling.
+- T5.1 已完成导入流程基线与单条/批量入口处理。
+- T5.2 completed validation, deduplication, and report generation enhancements.
+- T5.2 已完成校验、去重与报告生成增强。
+- T5.3 completed expiration/reminder state engine and unit tests.
+- T5.3 已完成到期提醒状态引擎与单元测试。
+- T5.4 completed FlexNet SSH start/stop adapter with timeout, retry, rollback, and audit logs.
+- T5.4 已完成 FlexNet SSH 启停适配器，覆盖超时、重试、回退与审计日志。
+- T5.5 completed cross-target compare service with deterministic diff output.
+- T5.5 已完成跨目标比对服务，输出稳定可复现。
+
+## Next Module Entry
+## 下一模块入口
+- Proceed to M06 (GUI and Interaction Integration), starting from T6.1 main list/search/status UI.
+- 继续进入 M06（GUI与交互集成），从 T6.1 主列表/搜索/状态界面开始。
+
 ## Risks and Mitigation
 ## 风险与缓解
 - Risk: Provider command variability.
