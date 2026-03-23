@@ -22,8 +22,11 @@ class ValidationResult:
 
 def validate_license_form(payload: dict[str, str]) -> ValidationResult:
     required_fields = (
+        "record_id",
         "server_name",
         "provider",
+        "feature_name",
+        "process_name",
         "expires_on",
     )
     issues: list[ValidationIssue] = []
@@ -51,17 +54,6 @@ def validate_license_form(payload: dict[str, str]) -> ValidationResult:
                     hint="Use format like 2026-12-31.",
                 )
             )
-
-    executable_path = payload.get("start_executable_path", "").strip()
-    license_file_path = payload.get("license_file_path", "").strip()
-    if not executable_path or not license_file_path:
-        issues.append(
-            ValidationIssue(
-                field="start_executable_path",
-                message="start_executable_path and license_file_path are required",
-                hint="Provide absolute executable path and license file path.",
-            )
-        )
 
     return ValidationResult(is_valid=not issues, issues=tuple(issues))
 

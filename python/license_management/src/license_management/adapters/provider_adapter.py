@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """Provider execution contract and result models.
 
 English:
@@ -10,6 +8,8 @@ Chinese:
 本模块定义了供应商适配器（例如 FlexNet）与底层 SSH 执行器之间的稳定契约边界。
 上层适配器只关心“要执行什么命令”，底层执行器负责“如何执行命令并返回结果”。
 """
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Protocol

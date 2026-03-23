@@ -123,7 +123,7 @@ class MainListViewModel:
     def _contains_any(self, record: LicenseRecord, *, token: str, fields: tuple[str, ...]) -> bool:
         value = token.lower()
         for field in fields:
-            candidate = getattr(record, field)
+            candidate = getattr(record, field, "")
             if isinstance(candidate, str) and value in candidate.lower():
                 return True
         return False

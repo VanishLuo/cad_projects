@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """Provider start-option profile loader and resolver.
 
 English:
@@ -28,6 +26,8 @@ Design notes / 设计说明:
     - Missing provider falls back to default profile / 未命中时回退 default
     - Config is cached by lru_cache(maxsize=1) / 配置使用单实例缓存减少 I/O
 """
+
+from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date

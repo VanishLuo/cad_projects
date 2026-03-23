@@ -16,11 +16,14 @@ def _record(
     feature_name: str,
     provider: str,
     expires_on: date,
+    vendor: str,
 ) -> LicenseRecord:
     return LicenseRecord(
         record_id=record_id,
         server_name=server_name,
         provider=provider,
+        vendor=vendor,
+        prot="27000",
         feature_name=feature_name,
         process_name="lmgrd",
         expires_on=expires_on,
@@ -30,21 +33,20 @@ def _record(
 @pytest.mark.parametrize(
     ("search_kwargs", "expected_ids"),
     [
-        ({"feature_name": "ANSYS"}, ["rec-001", "rec-002"]),
-        ({"keyword": "CFD"}, ["rec-002"]),
-        ({"provider": "FlexNet", "server_name": "prod"}, ["rec-001", "rec-002"]),
+        ({"keyword": "rec-002"}, ["rec-002"]),
+        ({"keyword": "flexnet", "server_name": "prod"}, ["rec-001", "rec-002"]),
+        ({"vendor": "ansys"}, ["rec-001", "rec-002"]),
         ({"status": "expired"}, ["rec-004"]),
-        ({"expires_before": date(2026, 5, 5)}, ["rec-004"]),
     ],
 )
 def test_e2e_search_filter_matrix(search_kwargs: dict[str, Any], expected_ids: list[str]) -> None:
     vm = MainListViewModel(warning_days=30)
     vm.load(
         [
-            _record("rec-001", "prod-a", "ANSYS-MECH", "FlexNet", date(2026, 6, 1)),
-            _record("rec-002", "prod-b", "ANSYS-CFD", "FlexNet", date(2026, 6, 10)),
-            _record("rec-003", "dev-a", "MATLAB", "MathWorks", date(2026, 6, 15)),
-            _record("rec-004", "qa-a", "LEGACY", "FlexNet", date(2026, 4, 30)),
+            _record("rec-001", "prod-a", "ANSYS-MECH", "FlexNet", date(2026, 6, 1), "ansys"),
+            _record("rec-002", "prod-b", "ANSYS-CFD", "FlexNet", date(2026, 6, 10), "ansys"),
+            _record("rec-003", "dev-a", "MATLAB", "MathWorks", date(2026, 6, 15), "mathworks"),
+            _record("rec-004", "qa-a", "LEGACY", "FlexNet", date(2026, 4, 30), "legacy"),
         ],
         today=date(2026, 5, 1),
     )

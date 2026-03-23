@@ -14,6 +14,7 @@ def _single_payload() -> dict[str, str]:
         "record_id": "r1",
         "server_name": "srv-a",
         "provider": "FlexNet",
+        "prot": "27000",
         "feature_name": "F1",
         "process_name": "lmgrd",
         "expires_on": "2026-12-31",

@@ -1,10 +1,10 @@
-from __future__ import annotations
-
 """Application launcher entrypoint / 应用启动入口。
 
 This module centralizes startup behavior for CLI and GUI mode.
 本模块集中处理命令行与 GUI 的统一启动流程。
 """
+
+from __future__ import annotations
 
 import argparse
 import sys

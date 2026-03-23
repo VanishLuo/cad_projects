@@ -68,6 +68,7 @@ def test_dialog_binder_import_and_compare_integration(tmp_path: Path) -> None:
             "record_id": "r-001",
             "server_name": "srv-a",
             "provider": "FlexNet",
+                        "prot": "27000",
             "feature_name": "ANSYS-MECH",
             "process_name": "lmgrd",
             "expires_on": "2026-12-31"
@@ -76,6 +77,7 @@ def test_dialog_binder_import_and_compare_integration(tmp_path: Path) -> None:
             "record_id": "r-002",
             "server_name": "srv-b",
             "provider": "FlexNet",
+                        "prot": "27001",
             "feature_name": "ANSYS-CFD",
             "process_name": "lmgrd",
             "expires_on": "2026-11-30"
@@ -118,8 +120,7 @@ def test_feature_search_consistent_with_view_model_filters() -> None:
     controller = FeatureSearchController(vm)
     result = controller.search(
         today=date(2026, 6, 1),
-        feature_name="ANSYS",
-        provider="FlexNet",
+        keyword="code-00",
         server_name="prod",
     )
 

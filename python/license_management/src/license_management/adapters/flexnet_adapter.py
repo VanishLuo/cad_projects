@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """FlexNet provider adapter implementation.
 
 English:
@@ -11,6 +9,8 @@ Chinese:
 该适配器属于执行层：把上游标准化后的字段（可执行路径、license 路径、
 provider 选项策略）组装成 FlexNet 命令，并通过 SshCommandExecutor 下发执行。
 """
+
+from __future__ import annotations
 
 from license_management.adapters.provider_command_profiles import resolve_start_option_tokens
 from license_management.adapters.provider_adapter import (

@@ -154,6 +154,7 @@ class ImportPipelineService:
 
         for payload in payloads:
             try:
+                explicit_record_id = bool(str(payload.get("record_id", "")).strip())
                 record_id = self._resolve_record_id(payload, next_auto_id)
                 parsed_id = self._parse_positive_int(record_id)
                 if parsed_id is None:
@@ -171,7 +172,7 @@ class ImportPipelineService:
                     )
                     continue
 
-                if business_key in seen_business_keys:
+                if (not explicit_record_id) and business_key in seen_business_keys:
                     deduplicated += 1
                     warnings.append(
                         f"{source_label}: duplicate business row skipped "
