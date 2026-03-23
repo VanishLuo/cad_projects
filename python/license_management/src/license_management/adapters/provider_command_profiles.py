@@ -167,5 +167,3 @@ def _to_str_object_dict(value: object) -> dict[str, object]:
         if isinstance(key, str):
             normalized[key] = item
     return normalized
-
-

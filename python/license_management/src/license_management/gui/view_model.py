@@ -132,10 +132,7 @@ class MainListViewModel:
         terms = (filters.keyword,)
         matched: list[str] = []
         haystack = " ".join(
-            [
-                str(getattr(record, field, ""))
-                for field in self._searchable_fields
-            ]
+            [str(getattr(record, field, "")) for field in self._searchable_fields]
         ).lower()
 
         for term in terms:

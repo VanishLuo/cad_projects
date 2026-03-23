@@ -31,8 +31,7 @@ class SqliteLicenseRepository:
         with sqlite3.connect(self._db_path) as conn:
             conn.execute(sql)
             existing_cols = {
-                str(row[1])
-                for row in conn.execute(f"PRAGMA table_info({self._table})").fetchall()
+                str(row[1]) for row in conn.execute(f"PRAGMA table_info({self._table})").fetchall()
             }
             for field, column in self._cols.items():
                 if column in existing_cols:
@@ -80,14 +79,12 @@ class SqliteLicenseRepository:
     def list_all(self) -> list[LicenseRecord]:
         select_cols = list(self._cols.values())
         with sqlite3.connect(self._db_path) as conn:
-            rows = conn.execute(
-                f"""
+            rows = conn.execute(f"""
                 SELECT
                     {', '.join(select_cols)}
                 FROM {self._table}
                 ORDER BY {self._id_col}
-                """
-            ).fetchall()
+                """).fetchall()
 
         fields = tuple(self._cols.keys())
         return [self._to_record(row, fields) for row in rows]
@@ -102,10 +99,7 @@ class SqliteLicenseRepository:
             return cursor.rowcount > 0
 
     def _to_record(self, row: tuple[object, ...], fields: tuple[str, ...]) -> LicenseRecord:
-        values_by_field = {
-            field: str(value)
-            for field, value in zip(fields, row)
-        }
+        values_by_field = {field: str(value) for field, value in zip(fields, row)}
         return LicenseRecord(
             record_id=values_by_field.get("record_id", ""),
             server_name=values_by_field.get("server_name", ""),

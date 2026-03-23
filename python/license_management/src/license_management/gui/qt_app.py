@@ -36,7 +36,10 @@ from license_management.gui.qt_compat import (
 )
 
 from license_management.adapters.flexnet_adapter import FlexNetAdapter
-from license_management.adapters.license_file_uploader import LicenseFileUploader, ScpLicenseFileUploader
+from license_management.adapters.license_file_uploader import (
+    LicenseFileUploader,
+    ScpLicenseFileUploader,
+)
 from license_management.adapters.provider_adapter import SshCommandExecutor
 from license_management.application.compare_service import CrossTargetCompareService
 from license_management.application.import_pipeline import ImportPipelineService
@@ -215,9 +218,7 @@ class MainWindow(QMainWindow):
             _qt_enum_member(QTableWidget, "SelectionMode", "SingleSelection")
         )
         # Keep table as read-only display; modifications should go through dialog workflows.
-        self._table.setEditTriggers(
-            _qt_enum_member(QTableWidget, "EditTrigger", "NoEditTriggers")
-        )
+        self._table.setEditTriggers(_qt_enum_member(QTableWidget, "EditTrigger", "NoEditTriggers"))
         self._table.setAlternatingRowColors(True)
 
         self._hint = QLabel("")
@@ -469,7 +470,9 @@ class MainWindow(QMainWindow):
 
     def _start_stop(self, action: str) -> None:
         selected = self._selected_record()
-        host = (selected.server_name if selected is not None else self._server.text().strip()) or "localhost"
+        host = (
+            selected.server_name if selected is not None else self._server.text().strip()
+        ) or "localhost"
         username = "operator"
         provider = selected.provider if selected is not None else ""
         start_executable_path = selected.start_executable_path if selected is not None else None

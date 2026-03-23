@@ -18,7 +18,7 @@ from license_management.gui.validation_feedback import to_license_record, valida
 
 
 # DialogFlowBinder is responsible for handling user interactions from the GUI and invoking the appropriate service-layer APIs.
-# DialogFlowBinder 负责处理来自 GUI 的用户交互并调用适当的服务层 API。  
+# DialogFlowBinder 负责处理来自 GUI 的用户交互并调用适当的服务层 API。
 @dataclass(slots=True, frozen=True)
 class DialogResult:
     success: bool
@@ -195,7 +195,9 @@ class DialogFlowBinder:
             for record in sorted(records, key=lambda item: item.record_id)
         ]
         try:
-            file_path.write_text(json.dumps(serialized, ensure_ascii=False, indent=2), encoding="utf-8")
+            file_path.write_text(
+                json.dumps(serialized, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
         except OSError as exc:
             message = FeedbackMessage(
                 level="error",

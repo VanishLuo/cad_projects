@@ -78,7 +78,9 @@ class SchemaMigrator:
 
             alter_statements: list[str] = []
             if "vendor" not in existing_columns:
-                alter_statements.append("ALTER TABLE license_records ADD COLUMN vendor TEXT NOT NULL DEFAULT ''")
+                alter_statements.append(
+                    "ALTER TABLE license_records ADD COLUMN vendor TEXT NOT NULL DEFAULT ''"
+                )
             if "start_executable_path" not in existing_columns:
                 alter_statements.append(
                     "ALTER TABLE license_records ADD COLUMN start_executable_path TEXT NOT NULL DEFAULT ''"

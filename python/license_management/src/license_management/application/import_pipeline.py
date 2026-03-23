@@ -56,7 +56,7 @@ class ImportPipelineService:
         all_records: list[dict[str, object]] = []
         errors: list[str] = []
 
-        for file_path in file_paths: 
+        for file_path in file_paths:
             try:
                 all_records.extend(self._load_records(file_path))
             except ValueError as exc:
