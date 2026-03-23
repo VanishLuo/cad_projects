@@ -89,6 +89,7 @@ def test_add_or_edit_import_start_stop_compare_export_flow(tmp_path: Path) -> No
                 "record_id": "r2",
                 "server_name": "srv-b",
                 "provider": "FlexNet",
+                "prot": "27000",
                 "feature_name": "ANSYS-CFD",
                 "process_name": "lmgrd",
                 "expires_on": "2026-12-01",

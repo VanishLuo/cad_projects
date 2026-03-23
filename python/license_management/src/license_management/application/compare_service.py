@@ -8,12 +8,18 @@ from license_management.domain.models.license_record import LicenseRecord
 
 @dataclass(slots=True, frozen=True)
 class TargetSnapshot:
+    # Input snapshot for one target/environment.
+    # 单个目标/环境的输入快照。
     target_name: str
     records: tuple[LicenseRecord, ...]
 
 
 @dataclass(slots=True, frozen=True)
 class CompareIssue:
+    # One normalized diff item under compare key
+    # (provider, server_name, feature_name, process_name).
+    # 一条归一化差异项，比较键为
+    # (provider, server_name, feature_name, process_name)。
     provider: str
     server_name: str
     feature_name: str
@@ -25,6 +31,8 @@ class CompareIssue:
 
 @dataclass(slots=True, frozen=True)
 class CompareReport:
+    # Deterministic report output from compare service.
+    # 比较服务的确定性输出报告。
     left_target_name: str
     right_target_name: str
     left_count: int
@@ -40,6 +48,8 @@ class CrossTargetCompareService:
     """Compares two target snapshots and returns deterministic diff report."""
 
     def compare(self, left: TargetSnapshot, right: TargetSnapshot) -> CompareReport:
+        # Build comparable indexes first so duplicate keys are normalized.
+        # 先建立可比较索引，对重复键做归一化。
         left_index = self._index_records(left.records)
         right_index = self._index_records(right.records)
 
@@ -50,6 +60,8 @@ class CrossTargetCompareService:
             right_record = right_index.get(key)
             provider, server_name, feature_name, process_name = key
 
+            # Missing on left side.
+            # 左侧缺失。
             if left_record is None and right_record is not None:
                 issues.append(
                     CompareIssue(
@@ -64,6 +76,8 @@ class CrossTargetCompareService:
                 )
                 continue
 
+            # Missing on right side.
+            # 右侧缺失。
             if right_record is None and left_record is not None:
                 issues.append(
                     CompareIssue(
@@ -78,6 +92,8 @@ class CrossTargetCompareService:
                 )
                 continue
 
+            # Both exist but expiration date mismatches.
+            # 两侧都存在但过期日期不一致。
             if left_record is not None and right_record is not None:
                 if left_record.expires_on != right_record.expires_on:
                     issues.append(
@@ -126,6 +142,8 @@ class CrossTargetCompareService:
                 record.feature_name,
                 record.process_name,
             )
+            # Keep first item only, since ordered already encodes priority.
+            # 仅保留首条记录，排序已编码优先级。
             if key not in index:
                 index[key] = record
         return index

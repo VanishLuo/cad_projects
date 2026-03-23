@@ -109,8 +109,10 @@
 
 ## Next Action
 ## 下一步
-- Consolidate M07 evidence package and prepare release readiness summary.
-- 汇总 M07 证据包并准备发布就绪性总结。
+- M07 evidence package consolidation completed; release readiness summary delivered.
+- M07 证据包汇总已完成，发布就绪总结已交付。
+- Summary document: `docs/M07_RELEASE_READINESS_SUMMARY.md`.
+- 总结文档：`docs/M07_RELEASE_READINESS_SUMMARY.md`。
 
 ## Risks and Mitigation
 ## 风险与缓解

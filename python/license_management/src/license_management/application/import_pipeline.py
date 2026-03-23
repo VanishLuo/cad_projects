@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import json
+import importlib
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
+from typing import cast
 
 from license_management.domain.models.license_record import LicenseRecord
 from license_management.domain.ports.license_repository import LicenseRepository
+from license_management.infrastructure.config.table_header_config import load_table_header_config
 
 
 @dataclass(slots=True)
@@ -19,12 +22,31 @@ class ImportReport:
     errors: list[str]
     warnings: list[str]
 
+    def to_summary_dict(self) -> dict[str, object]:
+        return {
+            "total": self.total,
+            "succeeded": self.succeeded,
+            "failed": self.failed,
+            "deduplicated": self.deduplicated,
+            "invalid": self.invalid,
+            "error_count": len(self.errors),
+            "warning_count": len(self.warnings),
+            "errors": list(self.errors),
+            "warnings": list(self.warnings),
+        }
+
 
 class ImportPipelineService:
     """Implements T5.1/T5.2 import pipelines with validation and deduplication."""
 
-    def __init__(self, repository: LicenseRepository) -> None:
+    def __init__(
+        self,
+        repository: LicenseRepository,
+    ) -> None:
         self._repository = repository
+        cfg = load_table_header_config()
+        self._json_controlled_fields = set(cfg.sqlite_columns.keys())
+        self._header_aliases = self._build_header_aliases()
 
     def import_single_file(self, file_path: Path) -> ImportReport:
         records = self._load_records(file_path)
@@ -48,18 +70,72 @@ class ImportPipelineService:
         return report
 
     def _load_records(self, file_path: Path) -> list[dict[str, object]]:
-        raw = json.loads(file_path.read_text(encoding="utf-8"))
+        suffix = file_path.suffix.lower()
+        if suffix == ".json":
+            return self._load_json_records(file_path)
+        if suffix in {".xlsx", ".xlsm"}:
+            return self._load_excel_records(file_path)
+        raise ValueError(f"unsupported import format: {file_path.suffix}")
 
-        if isinstance(raw, dict) and all(isinstance(k, str) for k in raw):
-            return [raw]
+    def _load_json_records(self, file_path: Path) -> list[dict[str, object]]:
+        raw: object = json.loads(file_path.read_text(encoding="utf-8"))
+
+        if isinstance(raw, dict):
+            typed = cast(dict[object, object], raw)
+            payload = {str(key): value for key, value in typed.items()}
+            return [self._normalize_payload_keys(payload)]
         if isinstance(raw, list):
+            raw_list = cast(list[object], raw)
             payloads: list[dict[str, object]] = []
-            for item in raw:
-                if not (isinstance(item, dict) and all(isinstance(k, str) for k in item)):
+            for item in raw_list:
+                if not isinstance(item, dict):
                     raise ValueError("list items must be JSON objects")
-                payloads.append(item)
+                typed = cast(dict[object, object], item)
+                payload = {str(key): value for key, value in typed.items()}
+                payloads.append(self._normalize_payload_keys(payload))
             return payloads
         raise ValueError("JSON payload must be an object or array")
+
+    def _load_excel_records(self, file_path: Path) -> list[dict[str, object]]:
+        try:
+            openpyxl = importlib.import_module("openpyxl")
+            load_workbook = getattr(openpyxl, "load_workbook")
+        except ImportError as exc:
+            raise ValueError("openpyxl is required for Excel import") from exc
+
+        workbook = load_workbook(file_path, read_only=True, data_only=True)
+        sheet = workbook.active
+        if sheet is None:
+            return []
+        rows = sheet.iter_rows(values_only=True)
+
+        try:
+            header_row = next(rows)
+        except StopIteration:
+            return []
+
+        headers = [str(cell).strip() if cell is not None else "" for cell in header_row]
+        if not any(headers):
+            return []
+
+        payloads: list[dict[str, object]] = []
+        for row in rows:
+            payload: dict[str, object] = {}
+            has_value = False
+            for index, cell in enumerate(row):
+                if index >= len(headers):
+                    continue
+                raw_key = headers[index]
+                key = self._resolve_header(raw_key)
+                if not key:
+                    continue
+                if cell is not None and str(cell).strip() != "":
+                    has_value = True
+                payload[key] = "" if cell is None else str(cell)
+            if has_value:
+                payloads.append(payload)
+
+        return payloads
 
     def _persist_records(
         self, payloads: list[dict[str, object]], *, source_label: str
@@ -69,23 +145,44 @@ class ImportPipelineService:
         invalid = 0
         warnings: list[str] = []
         errors: list[str] = []
-        seen_ids: set[str] = set()
+        existing_records = self._repository.list_all()
+        seen_ids: set[str] = {item.record_id for item in existing_records}
+        seen_business_keys: set[tuple[str, ...]] = {
+            self._build_business_key(item) for item in existing_records
+        }
+        next_auto_id = self._next_auto_record_id(existing_records)
 
         for payload in payloads:
             try:
-                record = self._build_record(payload)
+                explicit_record_id = bool(str(payload.get("record_id", "")).strip())
+                record_id = self._resolve_record_id(payload, next_auto_id)
+                parsed_id = self._parse_positive_int(record_id)
+                if parsed_id is None:
+                    next_auto_id += 1
+                else:
+                    next_auto_id = max(next_auto_id, parsed_id + 1)
 
-                if (
-                    record.record_id in seen_ids
-                    or self._repository.get(record.record_id) is not None
-                ):
+                record = self._build_record(payload, record_id=record_id)
+                business_key = self._build_business_key(record)
+
+                if record.record_id in seen_ids:
                     deduplicated += 1
                     warnings.append(
                         f"{source_label}: duplicate record_id skipped ({record.record_id})"
                     )
                     continue
 
+                if (not explicit_record_id) and business_key in seen_business_keys:
+                    deduplicated += 1
+                    warnings.append(
+                        f"{source_label}: duplicate business row skipped "
+                        f"(server={record.server_name}, provider={record.provider}, "
+                        f"license={record.license_file_path})"
+                    )
+                    continue
+
                 seen_ids.add(record.record_id)
+                seen_business_keys.add(business_key)
                 self._repository.upsert(record)
                 succeeded += 1
             except (KeyError, ValueError) as exc:
@@ -104,25 +201,111 @@ class ImportPipelineService:
             warnings=warnings,
         )
 
-    def _build_record(self, payload: dict[str, object]) -> LicenseRecord:
+    def _build_record(self, payload: dict[str, object], *, record_id: str) -> LicenseRecord:
         required = (
-            "record_id",
             "server_name",
             "provider",
-            "feature_name",
-            "process_name",
-            "expires_on",
+            "prot",
         )
+        normalized: dict[str, str] = {}
         for key in required:
             value = payload.get(key)
-            if not isinstance(value, str) or value.strip() == "":
+            if value is None:
+                if key == "prot":
+                    raise ValueError("port/prot must be a non-empty string")
                 raise ValueError(f"{key} must be a non-empty string")
+            text = str(value).strip()
+            if text == "":
+                if key == "prot":
+                    raise ValueError("port/prot must be a non-empty string")
+                raise ValueError(f"{key} must be a non-empty string")
+            normalized[key] = text
 
         return LicenseRecord(
-            record_id=str(payload["record_id"]),
-            server_name=str(payload["server_name"]),
-            provider=str(payload["provider"]),
-            feature_name=str(payload["feature_name"]),
-            process_name=str(payload["process_name"]),
-            expires_on=date.fromisoformat(str(payload["expires_on"])),
+            record_id=record_id,
+            server_name=normalized["server_name"],
+            provider=normalized["provider"],
+            prot=normalized["prot"],
+            feature_name="",
+            process_name="",
+            expires_on=date.today(),
+            vendor=self._get_controlled_text(payload, "vendor"),
+            start_executable_path=self._get_controlled_text(payload, "start_executable_path"),
+            license_file_path=self._get_controlled_text(payload, "license_file_path"),
+            start_option_override="",
+        )
+
+    def _build_header_aliases(self) -> dict[str, str]:
+        cfg = load_table_header_config()
+        aliases: dict[str, str] = {}
+        for internal_field, column_name in cfg.sqlite_columns.items():
+            aliases[internal_field.strip().lower()] = internal_field
+            aliases[column_name.strip().lower()] = internal_field
+
+        # Accept GUI display headers in imported files.
+        for key, label in cfg.gui_headers.items():
+            aliases[key.strip().lower()] = key
+            aliases[label.strip().lower()] = key
+
+        # Backward-compatible alias used by users in spreadsheets.
+        aliases["port"] = "prot"
+
+        return aliases
+
+    def _resolve_header(self, header: str) -> str:
+        key = header.strip().lower()
+        if not key:
+            return ""
+        return self._header_aliases.get(key, "")
+
+    def _normalize_payload_keys(self, payload: dict[str, object]) -> dict[str, object]:
+        normalized: dict[str, object] = {}
+        for key, value in payload.items():
+            mapped = self._resolve_header(str(key))
+            if not mapped:
+                continue
+            normalized[mapped] = value
+        return normalized
+
+    def _get_controlled_text(self, payload: dict[str, object], key: str) -> str:
+        if key not in self._json_controlled_fields:
+            return ""
+        value = payload.get(key)
+        if value is None:
+            return ""
+        return str(value).strip()
+
+    def _resolve_record_id(self, payload: dict[str, object], next_auto_id: int) -> str:
+        value = payload.get("record_id")
+        if value is None:
+            return str(next_auto_id)
+        text = str(value).strip()
+        return text or str(next_auto_id)
+
+    def _next_auto_record_id(self, records: list[LicenseRecord]) -> int:
+        max_id = 0
+        for item in records:
+            parsed = self._parse_positive_int(item.record_id)
+            if parsed is None:
+                continue
+            max_id = max(max_id, parsed)
+        return max_id + 1
+
+    def _parse_positive_int(self, value: str) -> int | None:
+        text = value.strip()
+        if not text.isdigit():
+            return None
+        parsed = int(text)
+        if parsed <= 0:
+            return None
+        return parsed
+
+    def _build_business_key(self, record: LicenseRecord) -> tuple[str, ...]:
+        return (
+            record.server_name.strip().lower(),
+            record.provider.strip().lower(),
+            record.vendor.strip().lower(),
+            record.prot.strip().lower(),
+            record.start_executable_path.strip().lower(),
+            record.license_file_path.strip().lower(),
         )

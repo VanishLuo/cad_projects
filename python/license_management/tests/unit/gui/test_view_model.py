@@ -18,6 +18,7 @@ def _record(
         record_id=record_id,
         server_name=server_name,
         provider=provider,
+        prot="27000",
         feature_name=feature_name,
         process_name="lmgrd",
         expires_on=expires_on,
@@ -59,7 +60,7 @@ def test_load_assigns_status_and_highlight_levels() -> None:
     assert by_id["r-active"].highlight_level == "normal"
 
 
-def test_search_and_filter_supports_combined_feature_filters() -> None:
+def test_search_and_filter_supports_combined_strict_filters() -> None:
     vm = MainListViewModel(warning_days=30)
     vm.load(
         [
@@ -87,17 +88,14 @@ def test_search_and_filter_supports_combined_feature_filters() -> None:
 
     rows = vm.search_and_filter(
         filters=SearchFilters(
-            provider="FlexNet",
             server_name="prod",
-            feature_name="ansys",
-            feature_code="001",
-            keyword="mech",
+            keyword="lic-001",
         ),
         today=date(2026, 5, 1),
     )
 
     assert [row.record_id for row in rows] == ["lic-001"]
-    assert rows[0].matched_terms == ("ansys", "001", "mech")
+    assert rows[0].matched_terms == ("lic-001",)
 
 
 def test_reset_filters_restores_full_result_set() -> None:

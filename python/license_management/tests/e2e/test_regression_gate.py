@@ -18,6 +18,7 @@ def _record(record_id: str, feature_name: str, expires_on: date) -> LicenseRecor
         record_id=record_id,
         server_name="srv-a",
         provider="FlexNet",
+        prot="27000",
         feature_name=feature_name,
         process_name="lmgrd",
         expires_on=expires_on,
@@ -49,7 +50,7 @@ def test_regression_core_flows_stay_consistent() -> None:
     vm = MainListViewModel()
     vm.load(repo.list_all(), today=date(2026, 6, 1))
     filtered = vm.search_and_filter(
-        filters=SearchFilters(feature_name="ANSYS", provider="FlexNet"),
+        filters=SearchFilters(keyword="r-001"),
         today=date(2026, 6, 1),
     )
     assert [row.record_id for row in filtered] == ["r-001"]
