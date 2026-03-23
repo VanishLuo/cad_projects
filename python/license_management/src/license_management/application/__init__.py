@@ -6,7 +6,8 @@ from license_management.application.compare_service import (
     CrossTargetCompareService,
     TargetSnapshot,
 )
-from license_management.application.expiration_engine import ExpirationState, ExpirationStateEngine
+from license_management.domain.expiration_engine import ExpirationState, ExpirationStateEngine
+from license_management.domain.expiration_engine import ExpirationStatus
 from license_management.application.import_pipeline import ImportPipelineService, ImportReport
 
 __all__ = [
@@ -15,6 +16,7 @@ __all__ = [
     "CrossTargetCompareService",
     "ExpirationState",
     "ExpirationStateEngine",
+    "ExpirationStatus",
     "ImportPipelineService",
     "ImportReport",
     "TargetSnapshot",

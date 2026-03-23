@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
+from uuid import uuid4
 
 from license_management.domain.models.license_record import LicenseRecord
 
@@ -21,11 +22,8 @@ class ValidationResult:
 
 def validate_license_form(payload: dict[str, str]) -> ValidationResult:
     required_fields = (
-        "record_id",
         "server_name",
         "provider",
-        "feature_name",
-        "process_name",
         "expires_on",
     )
     issues: list[ValidationIssue] = []
@@ -54,15 +52,32 @@ def validate_license_form(payload: dict[str, str]) -> ValidationResult:
                 )
             )
 
+    executable_path = payload.get("start_executable_path", "").strip()
+    license_file_path = payload.get("license_file_path", "").strip()
+    if not executable_path or not license_file_path:
+        issues.append(
+            ValidationIssue(
+                field="start_executable_path",
+                message="start_executable_path and license_file_path are required",
+                hint="Provide absolute executable path and license file path.",
+            )
+        )
+
     return ValidationResult(is_valid=not issues, issues=tuple(issues))
 
 
 def to_license_record(payload: dict[str, str]) -> LicenseRecord:
+    record_id = payload.get("record_id", "").strip() or uuid4().hex
     return LicenseRecord(
-        record_id=payload["record_id"].strip(),
+        record_id=record_id,
         server_name=payload["server_name"].strip(),
         provider=payload["provider"].strip(),
-        feature_name=payload["feature_name"].strip(),
-        process_name=payload["process_name"].strip(),
+        prot=payload.get("prot", "").strip(),
+        feature_name=payload.get("feature_name", "").strip(),
+        process_name=payload.get("process_name", "").strip(),
         expires_on=date.fromisoformat(payload["expires_on"].strip()),
+        vendor=payload.get("vendor", "").strip(),
+        start_executable_path=payload.get("start_executable_path", "").strip(),
+        license_file_path=payload.get("license_file_path", "").strip(),
+        start_option_override=payload.get("start_option_override", "").strip(),
     )

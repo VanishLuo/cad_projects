@@ -14,6 +14,11 @@ class LicenseRecord:
     feature_name: str
     process_name: str
     expires_on: date
+    prot: str = ""
+    vendor: str = ""
+    start_executable_path: str = ""
+    license_file_path: str = ""
+    start_option_override: str = ""
 
     def is_expired(self, today: date) -> bool:
         return self.expires_on < today

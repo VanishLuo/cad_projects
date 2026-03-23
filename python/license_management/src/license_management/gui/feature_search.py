@@ -24,24 +24,16 @@ class FeatureSearchController:
         self,
         *,
         today: date,
-        feature_name: str = "",
-        feature_code: str = "",
         keyword: str = "",
-        provider: str = "",
+        vendor: str = "",
         server_name: str = "",
         status: str = "",
-        expires_before: date | None = None,
-        text_query: str = "",
     ) -> FeatureSearchResult:
         filters = SearchFilters(
-            text_query=text_query,
-            feature_name=feature_name,
-            feature_code=feature_code,
             keyword=keyword,
-            provider=provider,
+            vendor=vendor,
             server_name=server_name,
             status=status,
-            expires_before=expires_before,
         )
         rows = self._view_model.search_and_filter(filters=filters, today=today)
         return FeatureSearchResult(

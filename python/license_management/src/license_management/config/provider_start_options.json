@@ -1,0 +1,19 @@
+{
+  "default": {
+    "start_file_option": "-c",
+    "log_option": "",
+    "log_file_template": ""
+  },
+  "providers": {
+    "flexnet": {
+      "start_file_option": "-c",
+      "log_option": "-l",
+      "log_file_template": "{license_dir}/{date}.log"
+    },
+    "mathworks": {
+      "start_file_option": "-c",
+      "log_option": "",
+      "log_file_template": ""
+    }
+  }
+}

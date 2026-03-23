@@ -1,1 +1,1 @@
-﻿"""Package marker."""
+﻿"""Domain package marker."""

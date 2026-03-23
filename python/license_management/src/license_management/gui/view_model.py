@@ -3,21 +3,18 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
-from license_management.application.expiration_engine import ExpirationStateEngine
+from license_management.domain.expiration_engine import ExpirationStateEngine, ExpirationStatus
 from license_management.domain.models.license_record import LicenseRecord
 from license_management.gui.models import UiLicenseRow
+from license_management.infrastructure.config.table_header_config import load_table_header_config
 
 
 @dataclass(slots=True, frozen=True)
 class SearchFilters:
-    text_query: str = ""
-    feature_name: str = ""
-    feature_code: str = ""
     keyword: str = ""
-    provider: str = ""
+    vendor: str = ""
     server_name: str = ""
     status: str = ""
-    expires_before: date | None = None
 
 
 class MainListViewModel:
@@ -28,6 +25,8 @@ class MainListViewModel:
         self._source_records: tuple[LicenseRecord, ...] = ()
         self._visible_rows: tuple[UiLicenseRow, ...] = ()
         self._filters = SearchFilters()
+        cfg = load_table_header_config()
+        self._searchable_fields = tuple(cfg.sqlite_columns.keys())
 
     @property
     def filters(self) -> SearchFilters:
@@ -60,10 +59,14 @@ class MainListViewModel:
                     record_id=record.record_id,
                     server_name=record.server_name,
                     provider=record.provider,
+                    prot=record.prot,
+                    vendor=record.vendor,
                     feature_name=record.feature_name,
                     process_name=record.process_name,
                     expires_on=record.expires_on,
-                    status=status,
+                    start_executable_path=record.start_executable_path,
+                    license_file_path=record.license_file_path,
+                    status=status.value,
                     highlight_level=self._to_highlight(status),
                     matched_terms=self._matched_terms(record=record, filters=filters),
                 )
@@ -92,36 +95,26 @@ class MainListViewModel:
             return "No matching records. Try resetting filters or broadening keywords."
         return "No records available. Import or add a record to get started."
 
-    def _matches(self, *, record: LicenseRecord, status: str, filters: SearchFilters) -> bool:
-        if filters.provider and record.provider.lower() != filters.provider.lower():
+    def _matches(
+        self,
+        *,
+        record: LicenseRecord,
+        status: ExpirationStatus,
+        filters: SearchFilters,
+    ) -> bool:
+        if filters.vendor and filters.vendor.lower() not in record.vendor.lower():
             return False
 
         if filters.server_name and filters.server_name.lower() not in record.server_name.lower():
             return False
 
-        if filters.status and status != filters.status:
-            return False
-
-        if filters.expires_before and record.expires_on > filters.expires_before:
-            return False
-
-        if filters.text_query and not self._contains_any(
-            record,
-            token=filters.text_query,
-            fields=("record_id", "server_name", "provider", "feature_name", "process_name"),
-        ):
-            return False
-
-        if filters.feature_name and filters.feature_name.lower() not in record.feature_name.lower():
-            return False
-
-        if filters.feature_code and filters.feature_code.lower() not in record.record_id.lower():
+        if filters.status and status.value != filters.status:
             return False
 
         if filters.keyword and not self._contains_any(
             record,
             token=filters.keyword,
-            fields=("feature_name", "process_name", "server_name"),
+            fields=self._searchable_fields,
         ):
             return False
 
@@ -136,15 +129,12 @@ class MainListViewModel:
         return False
 
     def _matched_terms(self, *, record: LicenseRecord, filters: SearchFilters) -> tuple[str, ...]:
-        terms = (filters.text_query, filters.feature_name, filters.feature_code, filters.keyword)
+        terms = (filters.keyword,)
         matched: list[str] = []
         haystack = " ".join(
             [
-                record.record_id,
-                record.server_name,
-                record.provider,
-                record.feature_name,
-                record.process_name,
+                str(getattr(record, field, ""))
+                for field in self._searchable_fields
             ]
         ).lower()
 
@@ -154,9 +144,9 @@ class MainListViewModel:
                 matched.append(term_value)
         return tuple(matched)
 
-    def _to_highlight(self, status: str) -> str:
-        if status == "expired":
+    def _to_highlight(self, status: ExpirationStatus) -> str:
+        if status is ExpirationStatus.EXPIRED:
             return "danger"
-        if status == "expiring_soon":
+        if status is ExpirationStatus.EXPIRING_SOON:
             return "warning"
         return "normal"
