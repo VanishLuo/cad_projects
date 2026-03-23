@@ -1,0 +1,36 @@
+{
+  "sqlite": {
+    "table_name": "license_records",
+    "columns": {
+      "record_id": "record_id",
+      "server_name": "server_name",
+      "prot": "prot",
+      "provider": "provider",
+      "vendor": "vendor",
+      "start_executable_path": "start_executable_path",
+      "license_file_path": "license_file_path"
+    }
+  },
+  "gui": {
+    "column_order": [
+      "record_id",
+      "server_name",
+      "prot",
+      "provider",
+      "vendor",
+      "start_executable_path",
+      "license_file_path",
+      "status"
+    ],
+    "headers": {
+      "record_id": "Record ID",
+      "server_name": "Server",
+      "prot": "Prot",
+      "provider": "Provider",
+      "vendor": "Vendor",
+      "start_executable_path": "Command Path",
+      "license_file_path": "License File Path",
+      "status": "Status"
+    }
+  }
+}

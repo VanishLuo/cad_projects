@@ -12,13 +12,14 @@ def _record(record_id: str, feature_name: str, server_name: str) -> LicenseRecor
         record_id=record_id,
         server_name=server_name,
         provider="FlexNet",
+        prot="27000",
         feature_name=feature_name,
         process_name="lmgrd",
         expires_on=date(2026, 6, 1),
     )
 
 
-def test_feature_search_supports_name_code_keyword_and_reset() -> None:
+def test_feature_search_supports_keyword_and_reset() -> None:
     vm = MainListViewModel()
     vm.load(
         [
@@ -32,9 +33,7 @@ def test_feature_search_supports_name_code_keyword_and_reset() -> None:
     controller = FeatureSearchController(vm)
     result = controller.search(
         today=date(2026, 5, 1),
-        feature_name="ansys",
-        feature_code="001",
-        keyword="mech",
+        keyword="code-a-001",
         server_name="prod",
     )
 

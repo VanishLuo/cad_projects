@@ -56,7 +56,11 @@ class SchemaMigrator:
             provider TEXT NOT NULL,
             feature_name TEXT NOT NULL,
             process_name TEXT NOT NULL,
-            expires_on TEXT NOT NULL
+            expires_on TEXT NOT NULL,
+            vendor TEXT NOT NULL DEFAULT '',
+            start_executable_path TEXT NOT NULL DEFAULT '',
+            license_file_path TEXT NOT NULL DEFAULT '',
+            start_option_override TEXT NOT NULL DEFAULT ''
         );
         CREATE INDEX IF NOT EXISTS idx_license_records_provider
             ON license_records(provider);
@@ -64,3 +68,41 @@ class SchemaMigrator:
             ON license_records(expires_on);
         """
         return self.apply_migration("0001_baseline", sql)
+
+    def apply_record_fields_v2(self) -> bool:
+        """Adds newer record fields for command-path based workflows."""
+        self.initialize()
+        with sqlite3.connect(self._db_path) as conn:
+            rows = conn.execute("PRAGMA table_info(license_records)").fetchall()
+            existing_columns = {str(row[1]) for row in rows}
+
+            alter_statements: list[str] = []
+            if "vendor" not in existing_columns:
+                alter_statements.append(
+                    "ALTER TABLE license_records ADD COLUMN vendor TEXT NOT NULL DEFAULT ''"
+                )
+            if "start_executable_path" not in existing_columns:
+                alter_statements.append(
+                    "ALTER TABLE license_records ADD COLUMN start_executable_path TEXT NOT NULL DEFAULT ''"
+                )
+            if "license_file_path" not in existing_columns:
+                alter_statements.append(
+                    "ALTER TABLE license_records ADD COLUMN license_file_path TEXT NOT NULL DEFAULT ''"
+                )
+            if "start_option_override" not in existing_columns:
+                alter_statements.append(
+                    "ALTER TABLE license_records ADD COLUMN start_option_override TEXT NOT NULL DEFAULT ''"
+                )
+
+            if not alter_statements:
+                return False
+
+            for sql in alter_statements:
+                conn.execute(sql)
+
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (migration_id) VALUES (?)",
+                ("0002_record_fields",),
+            )
+            conn.commit()
+        return True

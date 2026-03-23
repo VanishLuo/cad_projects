@@ -17,6 +17,8 @@ from license_management.gui.models import FeedbackCenter, FeedbackMessage
 from license_management.gui.validation_feedback import to_license_record, validate_license_form
 
 
+# DialogFlowBinder is responsible for handling user interactions from the GUI and invoking the appropriate service-layer APIs.
+# DialogFlowBinder 负责处理来自 GUI 的用户交互并调用适当的服务层 API。
 @dataclass(slots=True, frozen=True)
 class DialogResult:
     success: bool
@@ -91,7 +93,17 @@ class DialogFlowBinder:
         self._feedback.add(message)
         return DialogResult(success=success, feedback=message), report
 
-    def start_stop(self, *, action: str, host: str, username: str) -> DialogResult:
+    def start_stop(
+        self,
+        *,
+        action: str,
+        host: str,
+        username: str,
+        provider: str = "",
+        start_executable_path: str | None = None,
+        license_file_path: str | None = None,
+        start_option_override: str | None = None,
+    ) -> DialogResult:
         if self._flexnet_adapter is None:
             message = FeedbackMessage(
                 level="error",
@@ -113,7 +125,14 @@ class DialogFlowBinder:
             return DialogResult(success=False, feedback=message)
 
         result = (
-            self._flexnet_adapter.start(host=host, username=username)
+            self._flexnet_adapter.start(
+                host=host,
+                username=username,
+                provider=provider,
+                executable_path=start_executable_path,
+                license_file_path=license_file_path,
+                start_option_override=start_option_override,
+            )
             if action == "start"
             else self._flexnet_adapter.stop(host=host, username=username)
         )
@@ -165,13 +184,29 @@ class DialogFlowBinder:
                 "record_id": record.record_id,
                 "server_name": record.server_name,
                 "provider": record.provider,
+                "vendor": record.vendor,
                 "feature_name": record.feature_name,
                 "process_name": record.process_name,
                 "expires_on": record.expires_on.isoformat(),
+                "start_executable_path": record.start_executable_path,
+                "license_file_path": record.license_file_path,
+                "start_option_override": record.start_option_override,
             }
             for record in sorted(records, key=lambda item: item.record_id)
         ]
-        file_path.write_text(json.dumps(serialized, ensure_ascii=False, indent=2), encoding="utf-8")
+        try:
+            file_path.write_text(
+                json.dumps(serialized, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+        except OSError as exc:
+            message = FeedbackMessage(
+                level="error",
+                title="Export failed",
+                detail=f"Failed to export records to {file_path}: {exc}",
+                action="retry_export",
+            )
+            self._feedback.add(message)
+            return DialogResult(success=False, feedback=message)
 
         message = FeedbackMessage(
             level="success",

@@ -1,5 +1,18 @@
+"""FlexNet provider adapter implementation.
+
+English:
+This adapter is the execution layer that translates normalized startup
+parameters into concrete FlexNet commands, then sends them through the
+SshCommandExecutor contract.
+
+Chinese:
+该适配器属于执行层：把上游标准化后的字段（可执行路径、license 路径、
+provider 选项策略）组装成 FlexNet 命令，并通过 SshCommandExecutor 下发执行。
+"""
+
 from __future__ import annotations
 
+from license_management.adapters.provider_command_profiles import resolve_start_option_tokens
 from license_management.adapters.provider_adapter import (
     CommandAttemptLog,
     ProviderOperationResult,
@@ -8,7 +21,20 @@ from license_management.adapters.provider_adapter import (
 
 
 class FlexNetAdapter:
-    """Runs FlexNet start/stop operations on remote host through SSH."""
+    """Run FlexNet start/stop over SSH.
+
+    English:
+    Core responsibilities:
+    1) Assemble provider-specific command line.
+    2) Execute with retry and collect attempt logs.
+    3) Trigger rollback on start failure.
+
+    Chinese:
+    核心职责：
+    1) 组装供应商相关命令。
+    2) 按重试策略执行并记录每次尝试。
+    3) 启动失败时执行回滚。
+    """
 
     provider_name = "FlexNet"
 
@@ -29,12 +55,50 @@ class FlexNetAdapter:
         self._timeout_seconds = timeout_seconds
         self._retry_times = retry_times
 
-    def start(self, *, host: str, username: str) -> ProviderOperationResult:
-        start_command = f"{self._lmgrd_path} -c {self._license_file_path}"
+    def start(
+        self,
+        *,
+        host: str,
+        username: str,
+        provider: str = "",
+        executable_path: str | None = None,
+        license_file_path: str | None = None,
+        start_option_override: str | None = None,
+    ) -> ProviderOperationResult:
+        """Start license service with composed command.
+
+        English:
+        Command composition priority:
+        1) executable_path / license_file_path from record payload.
+        2) fallback to adapter defaults.
+        3) option tokens from override, otherwise provider JSON strategy.
+
+        Chinese:
+        命令组装优先级：
+        1) 优先使用记录里传入的 executable_path / license_file_path。
+        2) 若缺失则回退到适配器默认值。
+        3) option 优先使用 start_option_override，否则走 provider JSON 策略。
+        """
+
+        executable = executable_path or self._lmgrd_path
+        license_file = license_file_path or self._license_file_path
+        if start_option_override:
+            # Override is space-split into raw tokens for one-record custom behavior.
+            # 单条记录可通过覆盖项提供自定义 token。
+            option_tokens = tuple(token for token in start_option_override.split() if token)
+        else:
+            option_tokens = resolve_start_option_tokens(
+                provider,
+                license_file_path=license_file,
+            )
+
+        # Final shape: <exe> <options...> <license_file_path>
+        # 最终格式：<可执行文件> <选项...> <license 文件路径>
+        effective_start_command = " ".join([executable, *option_tokens, license_file])
         start_logs, start_succeeded = self._run_with_retry(
             host=host,
             username=username,
-            command=start_command,
+            command=effective_start_command,
         )
 
         rollback_logs: tuple[CommandAttemptLog, ...] = ()
@@ -42,6 +106,8 @@ class FlexNetAdapter:
         rollback_succeeded: bool | None = None
 
         if not start_succeeded:
+            # If start fails after all retries, force stop as rollback attempt.
+            # 若启动在全部重试后仍失败，执行强制停止作为回滚。
             rollback_attempted = True
             rollback_command = f"{self._lmutil_path} lmdown -force"
             rollback_logs, rollback_succeeded = self._run_once(
@@ -65,6 +131,12 @@ class FlexNetAdapter:
         )
 
     def stop(self, *, host: str, username: str) -> ProviderOperationResult:
+        """Stop license service directly using lmutil lmdown -force.
+
+        Chinese:
+        停止流程不需要命令拼装策略，直接执行固定停止命令。
+        """
+
         stop_command = f"{self._lmutil_path} lmdown -force"
         stop_logs, stop_succeeded = self._run_with_retry(
             host=host,
@@ -90,6 +162,12 @@ class FlexNetAdapter:
         username: str,
         command: str,
     ) -> tuple[tuple[CommandAttemptLog, ...], bool]:
+        """Execute one command with retry and full attempt logs.
+
+        Chinese:
+        按配置重试次数执行同一命令，并返回完整尝试日志与最终成败。
+        """
+
         logs: list[CommandAttemptLog] = []
 
         for attempt in range(1, self._retry_times + 2):
@@ -113,6 +191,12 @@ class FlexNetAdapter:
         command: str,
         attempt: int,
     ) -> tuple[tuple[CommandAttemptLog, ...], bool]:
+        """Execute one remote command once and build a typed attempt log.
+
+        Chinese:
+        单次下发远程命令，并构造结构化日志用于审计与问题排查。
+        """
+
         exit_code, stdout, stderr = self._executor.run(
             host=host,
             username=username,

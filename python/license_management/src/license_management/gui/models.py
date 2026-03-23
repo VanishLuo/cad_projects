@@ -9,11 +9,15 @@ class UiLicenseRow:
     record_id: str
     server_name: str
     provider: str
+    prot: str
+    vendor: str
     feature_name: str
     process_name: str
     expires_on: date
     status: str
     highlight_level: str
+    start_executable_path: str = ""
+    license_file_path: str = ""
     matched_terms: tuple[str, ...] = ()
 
 
@@ -29,6 +33,7 @@ class FeedbackCenter:
     def __init__(self) -> None:
         self._messages: list[FeedbackMessage] = []
 
+    # Expose messages as an immutable tuple to prevent external modification. 将消息作为不可变的元组公开以防止外部修改。
     @property
     def messages(self) -> tuple[FeedbackMessage, ...]:
         return tuple(self._messages)

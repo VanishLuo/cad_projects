@@ -59,6 +59,7 @@ def test_e2e_core_flow_import_filter_compare_export(tmp_path: Path) -> None:
                     "record_id": "r-001",
                     "server_name": "srv-a",
                     "provider": "FlexNet",
+                    "prot": "27000",
                     "feature_name": "ANSYS-MECH",
                     "process_name": "lmgrd",
                     "expires_on": "2026-12-31",
@@ -67,6 +68,7 @@ def test_e2e_core_flow_import_filter_compare_export(tmp_path: Path) -> None:
                     "record_id": "r-002",
                     "server_name": "srv-b",
                     "provider": "FlexNet",
+                    "prot": "27001",
                     "feature_name": "ANSYS-CFD",
                     "process_name": "lmgrd",
                     "expires_on": "2026-11-30",
@@ -83,8 +85,7 @@ def test_e2e_core_flow_import_filter_compare_export(tmp_path: Path) -> None:
     vm.load(repository.list_all(), today=date(2026, 6, 1))
     search = FeatureSearchController(vm).search(
         today=date(2026, 6, 1),
-        feature_name="ANSYS",
-        keyword="MECH",
+        keyword="r-001",
     )
     assert [row.record_id for row in search.rows] == ["r-001"]
 

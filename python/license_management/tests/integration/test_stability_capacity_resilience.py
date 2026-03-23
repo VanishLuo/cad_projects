@@ -31,6 +31,7 @@ def _record_payload(index: int) -> dict[str, str]:
         "record_id": f"rec-{index:03d}",
         "server_name": f"srv-{index % 4}",
         "provider": "FlexNet",
+        "prot": str(27000 + (index % 6)),
         "feature_name": f"FEATURE-{index % 6}",
         "process_name": "lmgrd",
         "expires_on": expires,
