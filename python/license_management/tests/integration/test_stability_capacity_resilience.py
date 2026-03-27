@@ -19,9 +19,11 @@ class StableExecutor:
         *,
         host: str,
         username: str,
+        password: str | None,
         command: str,
         timeout_seconds: int,
     ) -> tuple[int, str, str]:
+        _ = password
         return 0, "ok", ""
 
 

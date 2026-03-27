@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-
 from license_management.domain.expiration_engine import ExpirationStateEngine, ExpirationStatus
 from license_management.domain.models.license_record import LicenseRecord
 from license_management.gui.models import UiLicenseRow
@@ -25,6 +24,7 @@ class MainListViewModel:
         self._source_records: tuple[LicenseRecord, ...] = ()
         self._visible_rows: tuple[UiLicenseRow, ...] = ()
         self._filters = SearchFilters()
+        self._runtime_status_by_record_id: dict[str, str] = {}
         cfg = load_table_header_config()
         self._searchable_fields = tuple(cfg.sqlite_columns.keys())
 
@@ -40,6 +40,16 @@ class MainListViewModel:
         self._source_records = tuple(records)
         return self.search_and_filter(filters=self._filters, today=today)
 
+    def set_runtime_statuses(self, statuses: dict[str, str]) -> None:
+        self._runtime_status_by_record_id = dict(statuses)
+
+    def clear_runtime_statuses(self, record_ids: list[str] | None = None) -> None:
+        if record_ids is None:
+            self._runtime_status_by_record_id.clear()
+            return
+        for record_id in record_ids:
+            self._runtime_status_by_record_id.pop(record_id, None)
+
     def search_and_filter(
         self,
         *,
@@ -50,7 +60,7 @@ class MainListViewModel:
 
         rows: list[UiLicenseRow] = []
         for record in self._source_records:
-            status = self._engine.evaluate(record, today=today).status
+            status = self._resolve_status(record=record, today=today)
             if not self._matches(record=record, status=status, filters=filters):
                 continue
 
@@ -144,6 +154,14 @@ class MainListViewModel:
     def _to_highlight(self, status: ExpirationStatus) -> str:
         if status is ExpirationStatus.EXPIRED:
             return "danger"
-        if status is ExpirationStatus.EXPIRING_SOON:
-            return "warning"
-        return "normal"
+        if status is ExpirationStatus.UNKNOWN:
+            return "normal"
+        return "success"
+
+    def _resolve_status(self, *, record: LicenseRecord, today: date) -> ExpirationStatus:
+        runtime_status = self._runtime_status_by_record_id.get(record.record_id, "").strip()
+        if runtime_status == ExpirationStatus.EXPIRED.value:
+            return ExpirationStatus.EXPIRED
+        if runtime_status == ExpirationStatus.ACTIVE.value:
+            return ExpirationStatus.ACTIVE
+        return ExpirationStatus.UNKNOWN

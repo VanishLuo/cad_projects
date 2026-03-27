@@ -1,7 +1,6 @@
-"""Application launcher entrypoint / 应用启动入口。
+"""Application launcher entrypoint.
 
 This module centralizes startup behavior for CLI and GUI mode.
-本模块集中处理命令行与 GUI 的统一启动流程。
 """
 
 from __future__ import annotations
@@ -13,7 +12,7 @@ from pathlib import Path
 
 
 def _ensure_src_on_sys_path() -> None:
-    """Support direct file execution in IDEs / 支持 IDE 直接运行文件。"""
+    """Support direct file execution in IDEs."""
     current_file = Path(__file__).resolve()
     # Resolve source root from this file location.
     # 从当前文件位置解析出 src 根目录。
@@ -28,7 +27,7 @@ def _ensure_src_on_sys_path() -> None:
 
 
 def _resolve_version() -> str:
-    """Resolve package version, fallback to dev / 获取包版本，失败时回退为 dev。"""
+    """Resolve package version and fallback to dev."""
     try:
         return version("license-management")
     except PackageNotFoundError:
@@ -36,7 +35,7 @@ def _resolve_version() -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Program entry function / 程序主入口函数。"""
+    """Program entry function."""
     _ensure_src_on_sys_path()
 
     # Define entry-level CLI flags shared by all startup paths.
@@ -60,7 +59,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     try:
-        from license_management.gui.qt_app import run_gui
+        from license_management.gui.bootstrap import run_gui
     except ImportError as exc:
         print("Failed to start GUI mode.")
         print(f"Import error: {exc}")

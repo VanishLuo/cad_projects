@@ -10,6 +10,8 @@ from typing import cast
 from license_management.domain.models.license_record import LicenseRecord
 from license_management.domain.ports.license_repository import LicenseRepository
 from license_management.infrastructure.config.table_header_config import load_table_header_config
+from license_management.application.license_feature_catalog import LicenseFeatureCatalogService
+from license_management.shared.path_normalization import normalize_local_path_text
 
 
 @dataclass(slots=True)
@@ -42,10 +44,13 @@ class ImportPipelineService:
     def __init__(
         self,
         repository: LicenseRepository,
+        feature_catalog_service: LicenseFeatureCatalogService | None = None,
     ) -> None:
         self._repository = repository
-        cfg = load_table_header_config()
-        self._json_controlled_fields = set(cfg.sqlite_columns.keys())
+        self._feature_catalog_service = feature_catalog_service
+        self._cfg = load_table_header_config()
+        self._json_controlled_fields = set(self._cfg.sqlite_columns.keys())
+        self._field_whitelist = set(self._cfg.field_whitelist)
         self._header_aliases = self._build_header_aliases()
 
     def import_single_file(self, file_path: Path) -> ImportReport:
@@ -154,7 +159,6 @@ class ImportPipelineService:
 
         for payload in payloads:
             try:
-                explicit_record_id = bool(str(payload.get("record_id", "")).strip())
                 record_id = self._resolve_record_id(payload, next_auto_id)
                 parsed_id = self._parse_positive_int(record_id)
                 if parsed_id is None:
@@ -163,21 +167,24 @@ class ImportPipelineService:
                     next_auto_id = max(next_auto_id, parsed_id + 1)
 
                 record = self._build_record(payload, record_id=record_id)
+                display_path = normalize_local_path_text(record.license_file_path)
                 business_key = self._build_business_key(record)
 
                 if record.record_id in seen_ids:
                     deduplicated += 1
                     warnings.append(
-                        f"{source_label}: duplicate record_id skipped ({record.record_id})"
+                        f"{source_label}: duplicate record_id skipped "
+                        f"(server={record.server_name}, provider={record.provider}, "
+                        f"license={display_path or record.license_file_path})"
                     )
                     continue
 
-                if (not explicit_record_id) and business_key in seen_business_keys:
+                if self._has_business_identity(record) and business_key in seen_business_keys:
                     deduplicated += 1
                     warnings.append(
                         f"{source_label}: duplicate business row skipped "
                         f"(server={record.server_name}, provider={record.provider}, "
-                        f"license={record.license_file_path})"
+                        f"license={display_path or record.license_file_path})"
                     )
                     continue
 
@@ -185,6 +192,14 @@ class ImportPipelineService:
                 seen_business_keys.add(business_key)
                 self._repository.upsert(record)
                 succeeded += 1
+
+                if self._feature_catalog_service is not None:
+                    sync = self._feature_catalog_service.sync_from_record(record)
+                    if sync.license_missing:
+                        warnings.append(
+                            f"{source_label}: license file not found, feature catalog skipped "
+                            f"({display_path or record.license_file_path})"
+                        )
             except (KeyError, ValueError) as exc:
                 invalid += 1
                 errors.append(f"{source_label}: invalid record payload ({exc})")
@@ -202,11 +217,7 @@ class ImportPipelineService:
         )
 
     def _build_record(self, payload: dict[str, object], *, record_id: str) -> LicenseRecord:
-        required = (
-            "server_name",
-            "provider",
-            "prot",
-        )
+        required = self._cfg.sqlite_required_fields
         normalized: dict[str, str] = {}
         for key in required:
             value = payload.get(key)
@@ -236,14 +247,13 @@ class ImportPipelineService:
         )
 
     def _build_header_aliases(self) -> dict[str, str]:
-        cfg = load_table_header_config()
         aliases: dict[str, str] = {}
-        for internal_field, column_name in cfg.sqlite_columns.items():
+        for internal_field, column_name in self._cfg.sqlite_columns.items():
             aliases[internal_field.strip().lower()] = internal_field
             aliases[column_name.strip().lower()] = internal_field
 
         # Accept GUI display headers in imported files.
-        for key, label in cfg.gui_headers.items():
+        for key, label in self._cfg.gui_headers.items():
             aliases[key.strip().lower()] = key
             aliases[label.strip().lower()] = key
 
@@ -268,7 +278,7 @@ class ImportPipelineService:
         return normalized
 
     def _get_controlled_text(self, payload: dict[str, object], key: str) -> str:
-        if key not in self._json_controlled_fields:
+        if key not in self._json_controlled_fields or key not in self._field_whitelist:
             return ""
         value = payload.get(key)
         if value is None:
@@ -303,9 +313,23 @@ class ImportPipelineService:
     def _build_business_key(self, record: LicenseRecord) -> tuple[str, ...]:
         return (
             record.server_name.strip().lower(),
+            record.feature_name.strip().lower(),
+            record.process_name.strip().lower(),
+            record.expires_on.isoformat(),
             record.provider.strip().lower(),
             record.vendor.strip().lower(),
             record.prot.strip().lower(),
             record.start_executable_path.strip().lower(),
             record.license_file_path.strip().lower(),
+            record.start_option_override.strip().lower(),
+        )
+
+    def _has_business_identity(self, record: LicenseRecord) -> bool:
+        return any(
+            (
+                record.feature_name.strip(),
+                record.process_name.strip(),
+                record.start_executable_path.strip(),
+                record.license_file_path.strip(),
+            )
         )

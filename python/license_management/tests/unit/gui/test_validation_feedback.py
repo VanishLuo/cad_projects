@@ -9,6 +9,7 @@ def test_validate_license_form_reports_missing_fields() -> None:
             "record_id": "",
             "server_name": "",
             "provider": "",
+            "prot": "",
             "feature_name": "",
             "process_name": "",
             "expires_on": "",
@@ -16,7 +17,7 @@ def test_validate_license_form_reports_missing_fields() -> None:
     )
 
     assert result.is_valid is False
-    assert len(result.issues) == 6
+    assert len(result.issues) == 3
 
 
 def test_validate_license_form_reports_bad_date_format() -> None:
@@ -25,6 +26,7 @@ def test_validate_license_form_reports_bad_date_format() -> None:
             "record_id": "r1",
             "server_name": "srv-a",
             "provider": "FlexNet",
+            "prot": "27000",
             "feature_name": "F1",
             "process_name": "lmgrd",
             "expires_on": "2026/12/31",
@@ -41,6 +43,7 @@ def test_to_license_record_builds_domain_model() -> None:
             "record_id": "r1",
             "server_name": "srv-a",
             "provider": "FlexNet",
+            "prot": "27000",
             "feature_name": "F1",
             "process_name": "lmgrd",
             "expires_on": "2026-12-31",

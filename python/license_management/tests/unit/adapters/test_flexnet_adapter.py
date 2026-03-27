@@ -15,6 +15,7 @@ class StubSshExecutor:
         *,
         host: str,
         username: str,
+        password: str | None,
         command: str,
         timeout_seconds: int,
     ) -> tuple[int, str, str]:
@@ -99,3 +100,22 @@ def test_stop_fails_after_all_retries() -> None:
     assert result.succeeded is False
     assert result.attempts == 3
     assert all(log.command == "lmutil lmdown -force" for log in result.command_logs)
+
+
+def test_start_override_failure_does_not_trigger_rollback() -> None:
+    executor = StubSshExecutor(
+        {
+            "ls -l": [
+                (127, "", "command not found"),
+                (127, "", "command not found"),
+            ],
+            "lmutil lmdown -force": [(0, "stopped", "")],
+        }
+    )
+    adapter = FlexNetAdapter(executor, retry_times=1, start_command_override="ls -l")
+
+    result = adapter.start(host="srv-a", username="ops")
+
+    assert result.succeeded is False
+    assert result.rollback_attempted is False
+    assert all(log.command == "ls -l" for log in result.command_logs)

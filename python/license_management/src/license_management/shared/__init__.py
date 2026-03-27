@@ -24,6 +24,7 @@ from license_management.shared.packaging_pipeline import (
     sha256_of_file,
     write_manifest,
 )
+from license_management.shared.path_normalization import normalize_local_path_text
 from license_management.shared.release_management import (
     PublishRecord,
     ReleaseNote,
@@ -64,4 +65,5 @@ __all__ = [
     "write_publish_record",
     "write_release_note",
     "write_security_review_report",
+    "normalize_local_path_text",
 ]

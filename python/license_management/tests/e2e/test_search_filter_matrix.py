@@ -37,6 +37,7 @@ def _record(
         ({"keyword": "flexnet", "server_name": "prod"}, ["rec-001", "rec-002"]),
         ({"vendor": "ansys"}, ["rec-001", "rec-002"]),
         ({"status": "expired"}, ["rec-004"]),
+        ({"status": "active"}, ["rec-001", "rec-002", "rec-003"]),
     ],
 )
 def test_e2e_search_filter_matrix(search_kwargs: dict[str, Any], expected_ids: list[str]) -> None:
@@ -49,6 +50,14 @@ def test_e2e_search_filter_matrix(search_kwargs: dict[str, Any], expected_ids: l
             _record("rec-004", "qa-a", "LEGACY", "FlexNet", date(2026, 4, 30), "legacy"),
         ],
         today=date(2026, 5, 1),
+    )
+    vm.set_runtime_statuses(
+        {
+            "rec-001": "active",
+            "rec-002": "active",
+            "rec-003": "active",
+            "rec-004": "expired",
+        }
     )
 
     result = FeatureSearchController(vm).search(today=date(2026, 5, 1), **search_kwargs)

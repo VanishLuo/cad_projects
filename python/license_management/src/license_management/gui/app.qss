@@ -106,12 +106,17 @@ QDialogButtonBox QPushButton:disabled {
 }
 
 QTableWidget {
-    background: #ffffff;
-    alternate-background-color: #fafafa;
+    background: #f7f9fc;
+    alternate-background-color: #edf2f8;
     border: 1px solid #d4d4d4;
     border-radius: 2px;
     gridline-color: #ececec;
     outline: none;
+}
+
+QTableWidget::item {
+    background: #f7f9fc;
+    color: #1e1e1e;
 }
 
 QHeaderView::section {
@@ -125,8 +130,8 @@ QHeaderView::section {
 }
 
 QTableWidget::item:selected {
-    background: #e8f3ff;
-    color: #1e1e1e;
+    background: #1f4f88;
+    color: #ffffff;
 }
 
 /* Add/Edit dialog explicit style scope to ensure child dialog is skinned. */

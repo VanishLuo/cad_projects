@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from PyQt5.QtCore import QDate, Qt  # type: ignore[import-not-found]
+from PyQt5.QtCore import QObject, QDate, QThread, Qt, pyqtSignal  # type: ignore[import-not-found]
 from PyQt5.QtGui import QColor  # type: ignore[import-not-found]
 from PyQt5.QtWidgets import (  # type: ignore[import-not-found]
     QApplication,
@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import (  # type: ignore[import-not-found]
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QSplitter,
     QTextEdit,
     QTableWidget,
     QTableWidgetItem,
@@ -59,7 +60,10 @@ __all__ = [
     "QLineEdit",
     "QMainWindow",
     "QMessageBox",
+    "QObject",
     "QPushButton",
+    "QSplitter",
+    "QThread",
     "QTextEdit",
     "QTableWidget",
     "QTableWidgetItem",
@@ -70,4 +74,5 @@ __all__ = [
     "app_exec",
     "dialog_exec",
     "dialog_is_accepted",
+    "pyqtSignal",
 ]

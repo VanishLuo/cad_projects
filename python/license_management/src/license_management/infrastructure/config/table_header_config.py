@@ -41,8 +41,10 @@ _GUI_FIELDS = (
 class TableHeaderConfig:
     sqlite_table_name: str
     sqlite_columns: dict[str, str]
+    sqlite_required_fields: tuple[str, ...]
     gui_column_order: tuple[str, ...]
     gui_headers: dict[str, str]
+    field_whitelist: tuple[str, ...]
 
 
 @lru_cache(maxsize=1)
@@ -61,6 +63,9 @@ def load_table_header_config() -> TableHeaderConfig:
             continue
         sqlite_columns[field] = _sanitize_identifier(str(value))
 
+    required_raw = sqlite_raw.get("required_fields")
+    sqlite_required_fields = _normalize_required_fields(required_raw, sqlite_columns)
+
     for required in _MIN_SQLITE_FIELDS:
         if required not in sqlite_columns:
             raise ValueError(f"Missing required sqlite column mapping: {required}")
@@ -74,11 +79,17 @@ def load_table_header_config() -> TableHeaderConfig:
     for field in gui_order:
         gui_headers[field] = str(headers_raw.get(field, field)).strip() or field
 
+    project_raw = _to_str_object_dict(data.get("project"))
+    whitelist_raw = project_raw.get("field_whitelist")
+    field_whitelist = _normalize_field_whitelist(whitelist_raw)
+
     return TableHeaderConfig(
         sqlite_table_name=table_name,
         sqlite_columns=sqlite_columns,
+        sqlite_required_fields=sqlite_required_fields,
         gui_column_order=gui_order,
         gui_headers=gui_headers,
+        field_whitelist=field_whitelist,
     )
 
 
@@ -95,6 +106,40 @@ def _normalize_gui_order(value: object) -> tuple[str, ...]:
 
     if not normalized:
         return _GUI_FIELDS
+
+    return tuple(normalized)
+
+
+def _normalize_required_fields(
+    value: object, sqlite_columns: dict[str, str]
+) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        defaults = ("server_name", "provider", "prot")
+        return tuple(field for field in defaults if field in sqlite_columns)
+
+    typed = cast(list[object], value)
+    normalized: list[str] = []
+    for item in typed:
+        field = str(item).strip()
+        if field in sqlite_columns and field != "record_id" and field not in normalized:
+            normalized.append(field)
+
+    return tuple(normalized)
+
+
+def _normalize_field_whitelist(value: object) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        return _RECORD_FIELDS
+
+    typed = cast(list[object], value)
+    normalized: list[str] = []
+    for item in typed:
+        field = str(item).strip()
+        if field in _RECORD_FIELDS and field not in normalized:
+            normalized.append(field)
+
+    if not normalized:
+        return _RECORD_FIELDS
 
     return tuple(normalized)
 
