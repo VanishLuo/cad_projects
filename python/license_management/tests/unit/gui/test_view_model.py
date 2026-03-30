@@ -159,4 +159,3 @@ def test_runtime_status_override_controls_status_and_highlight() -> None:
     assert len(rows) == 1
     assert rows[0].status == "expired"
     assert rows[0].highlight_level == "danger"
-

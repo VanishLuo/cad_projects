@@ -77,4 +77,3 @@ def test_start_stop_stability_for_8_cycles() -> None:
         stop_result = binder.start_stop(action="stop", host="srv-a", username="ops")
         assert start_result.success is True
         assert stop_result.success is True
-

@@ -66,4 +66,3 @@ def test_reset_filters_returns_feedback_and_before_payload() -> None:
 
     assert result.feedback == "Filters reset."
     assert "before" in result.log_fields
-

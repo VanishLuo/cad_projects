@@ -19,4 +19,3 @@ def test_present_committed_workspace() -> None:
 
     assert result.text == "COMMITTED (production)"
     assert "#2e7d32" in result.style_sheet
-

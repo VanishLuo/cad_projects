@@ -305,4 +305,3 @@ def test_export_includes_feature_details_for_excel_and_json(tmp_path: Path) -> N
     assert len(by_id["r-001"]["features"]) == 2
     assert by_id["r-001"]["features"][0]["feature_name"] in {"ANSYS-MECH", "ANSYS-CFD"}
     assert len(by_id["r-002"]["features"]) == 1
-

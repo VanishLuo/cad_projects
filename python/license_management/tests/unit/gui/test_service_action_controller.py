@@ -131,4 +131,3 @@ def test_execute_runs_binder_and_returns_logs() -> None:
     assert len(result.operation_logs) == 1
     assert binder.called_with is not None
     assert binder.called_with["provider"] == "FlexNet"
-

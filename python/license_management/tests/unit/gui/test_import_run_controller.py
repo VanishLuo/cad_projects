@@ -144,4 +144,3 @@ def test_shutdown_forces_terminate_when_wait_times_out() -> None:
     assert controller._worker is None
     assert controller.in_progress is False
     assert state_changes[-1] is False
-

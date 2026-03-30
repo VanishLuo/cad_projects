@@ -35,4 +35,3 @@ def test_ui_log_service_appends_filtered_event() -> None:
     service.log_event("service_action_blocked", reason="no_row", record_id="r1")
 
     assert len(lines) == 1
-

@@ -63,4 +63,3 @@ def test_e2e_search_filter_matrix(search_kwargs: dict[str, Any], expected_ids: l
     result = FeatureSearchController(vm).search(today=date(2026, 5, 1), **search_kwargs)
     found_ids = sorted(row.record_id for row in result.rows)
     assert found_ids == sorted(expected_ids)
-

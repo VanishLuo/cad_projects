@@ -63,4 +63,3 @@ def test_prepare_add_payload_returns_validation_error() -> None:
 
     assert result.ok is False
     assert result.error_detail != ""
-

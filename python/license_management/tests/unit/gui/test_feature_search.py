@@ -41,4 +41,3 @@ def test_feature_search_supports_keyword_and_reset() -> None:
 
     reset = controller.reset(today=date(2026, 5, 1))
     assert len(reset.rows) == 3
-

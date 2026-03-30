@@ -18,4 +18,3 @@ def test_build_enabled_state_uses_workspace_policy() -> None:
     assert result.controls_enabled is True
     assert result.button_enabled["add"] is False
     assert result.button_enabled["import"] is False
-

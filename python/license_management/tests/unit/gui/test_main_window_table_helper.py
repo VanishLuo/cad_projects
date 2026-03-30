@@ -176,4 +176,3 @@ def test_render_rows_and_selection_resolution(monkeypatch: MonkeyPatch) -> None:
     selected_many = helper.selected_records()
     assert len(selected_many) >= 1
     assert selected_many[0].record_id in {"r1", "r2"}
-

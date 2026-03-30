@@ -58,4 +58,3 @@ def test_enter_staging_workspace_returns_change_flag() -> None:
     assert changed_again is False
     assert repo.current_workspace == "staging"
     assert catalog.enter_calls == 2
-

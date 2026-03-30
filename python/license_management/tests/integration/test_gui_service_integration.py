@@ -143,4 +143,3 @@ def test_start_stop_failure_generates_traceable_feedback() -> None:
     assert result.success is False
     assert result.feedback.level == "error"
     assert result.feedback.action == "view_operation_log"
-

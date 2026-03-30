@@ -141,4 +141,3 @@ def test_e2e_invalid_form_shows_recoverable_feedback() -> None:
         }
     )
     assert valid_result.success is True
-

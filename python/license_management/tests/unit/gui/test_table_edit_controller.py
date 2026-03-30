@@ -44,4 +44,3 @@ def test_apply_returns_updated_record() -> None:
     assert decision.action == "updated"
     assert decision.updated_record is not None
     assert decision.updated_record.vendor == "synopsys"
-

@@ -179,4 +179,3 @@ def test_load_remote_text_returns_error_message_on_failure() -> None:
 
     assert loaded is None
     assert error == "read failed"
-

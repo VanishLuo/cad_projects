@@ -86,4 +86,3 @@ def test_build_for_record_id_falls_back_to_same_file_grouping() -> None:
     assert result.found is True
     assert result.record_count == 2
     assert len(result.grouped_rows) == 2
-
