@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from datetime import date
@@ -10,8 +10,8 @@ from license_management.adapters.flexnet_adapter import FlexNetAdapter
 from license_management.application.compare_service import CrossTargetCompareService
 from license_management.application.import_pipeline import ImportPipelineService
 from license_management.domain.models.license_record import LicenseRecord
-from license_management.gui.dialog_flows import DialogFlowBinder
-from license_management.gui.models import FeedbackCenter
+from license_management.gui.flows.dialog_flows import DialogFlowBinder
+from license_management.gui.state.models import FeedbackCenter
 from license_management.infrastructure.repositories.in_memory_license_repository import (
     InMemoryLicenseRepository,
 )
@@ -305,3 +305,4 @@ def test_export_includes_feature_details_for_excel_and_json(tmp_path: Path) -> N
     assert len(by_id["r-001"]["features"]) == 2
     assert by_id["r-001"]["features"][0]["feature_name"] in {"ANSYS-MECH", "ANSYS-CFD"}
     assert len(by_id["r-002"]["features"]) == 1
+

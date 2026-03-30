@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
-from license_management.gui.models import UiLicenseRow
-from license_management.gui.view_model import MainListViewModel, SearchFilters
+from license_management.gui.state.models import UiLicenseRow
+from license_management.gui.state.view_model import MainListViewModel, SearchFilters
 
 
 @dataclass(slots=True, frozen=True)

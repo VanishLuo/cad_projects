@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 from datetime import date
@@ -6,8 +6,8 @@ from pathlib import Path
 
 from license_management.adapters.flexnet_adapter import FlexNetAdapter
 from license_management.application.import_pipeline import ImportPipelineService
-from license_management.gui.dialog_flows import DialogFlowBinder
-from license_management.gui.models import FeedbackCenter
+from license_management.gui.flows.dialog_flows import DialogFlowBinder
+from license_management.gui.state.models import FeedbackCenter
 from license_management.infrastructure.repositories.in_memory_license_repository import (
     InMemoryLicenseRepository,
 )
@@ -77,3 +77,4 @@ def test_start_stop_stability_for_8_cycles() -> None:
         stop_result = binder.start_stop(action="stop", host="srv-a", username="ops")
         assert start_result.success is True
         assert stop_result.success is True
+

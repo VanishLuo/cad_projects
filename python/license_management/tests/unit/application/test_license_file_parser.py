@@ -7,14 +7,12 @@ from pytest import MonkeyPatch
 from license_management.application.license_file_parser import (
     LicenseParserResolver,
     LicenseFeatureParser,
-    LicenseRecordExpander,
 )
 from license_management.infrastructure.config.license_parser_config import (
     LicenseParserConfig,
     ParserProfileConfig,
     ParserRouteConfig,
 )
-from license_management.domain.models.license_record import LicenseRecord
 
 
 def test_license_feature_parser_extracts_feature_name_quantity_and_expiry(tmp_path: Path) -> None:
@@ -39,33 +37,6 @@ def test_license_feature_parser_extracts_feature_name_quantity_and_expiry(tmp_pa
     assert rows[0].expires_on == date(2026, 12, 31)
     assert rows[1].feature_name == "ANSYS-CFD"
     assert rows[1].expires_on == date(2027, 1, 15)
-
-
-def test_license_record_expander_splits_rows_by_feature_quantity(tmp_path: Path) -> None:
-    license_file = tmp_path / "sample.lic"
-    license_file.write_text(
-        "FEATURE FEAT-A vendor 1.0 2026-12-31 COUNT=2\n",
-        encoding="utf-8",
-    )
-    base = LicenseRecord(
-        record_id="base",
-        server_name="srv-a",
-        provider="FlexNet",
-        prot="27000",
-        feature_name="",
-        process_name="lmgrd",
-        expires_on=date(2026, 1, 1),
-        license_file_path=str(license_file),
-    )
-
-    expander = LicenseRecordExpander()
-    expanded = expander.expand_from_record(base)
-
-    assert len(expanded) == 2
-    assert expanded[0].record_id == "base#1-1"
-    assert expanded[1].record_id == "base#1-2"
-    assert all(item.feature_name == "FEAT-A" for item in expanded)
-    assert all(item.expires_on == date(2026, 12, 31) for item in expanded)
 
 
 def test_parser_resolver_routes_by_provider_and_vendor(
@@ -162,7 +133,65 @@ def test_parser_supports_siemens_increment_keyword(tmp_path: Path) -> None:
     resolver = LicenseParserResolver()
     rows = resolver.resolve(provider="FlexNet", vendor="Siemens-EDA").parse(target_file)
 
+    assert len(rows) == 2
+    assert rows[0].feature_name == "IGNORE_THIS"
+    assert rows[0].expires_on == date(2026, 12, 31)
+    assert rows[0].quantity == 1
+    assert rows[1].feature_name == "ALPS_AS"
+    assert rows[1].expires_on == date(2026, 4, 30)
+    assert rows[1].quantity == 300
+
+
+def test_parser_increment_prefers_quantity_after_expiry_over_sign_tail(tmp_path: Path) -> None:
+    target_file = tmp_path / "increment_with_sign_tail.lic"
+    target_file.write_text(
+        "INCREMENT XT_FEATURE empyrean 1.0 30-apr-2026 30 SIGN=ABCD 9999\n",
+        encoding="utf-8",
+    )
+
+    resolver = LicenseParserResolver()
+    rows = resolver.resolve(provider="FlexNet", vendor="Siemens-EDA").parse(target_file)
+
+    assert len(rows) == 1
+    assert rows[0].feature_name == "XT_FEATURE"
+    assert rows[0].expires_on == date(2026, 4, 30)
+    assert rows[0].quantity == 30
+
+
+def test_parser_supports_empyrean_increment_route(tmp_path: Path) -> None:
+    target_file = tmp_path / "empyrean_increment.lic"
+    target_file.write_text(
+        "INCREMENT ALPS_AS empyrean 1.0 30-apr-2026 300 SIGN=ABCD 9999\n",
+        encoding="utf-8",
+    )
+
+    resolver = LicenseParserResolver()
+    rows = resolver.resolve(provider="FlexNet", vendor="empyrean").parse(target_file)
+
     assert len(rows) == 1
     assert rows[0].feature_name == "ALPS_AS"
     assert rows[0].expires_on == date(2026, 4, 30)
     assert rows[0].quantity == 300
+
+
+def test_parser_supports_mixed_feature_and_increment_for_same_vendor(tmp_path: Path) -> None:
+    target_file = tmp_path / "mixed_vendor.lic"
+    target_file.write_text(
+        "\n".join(
+            [
+                "FEATURE FEAT_A empyrean 1.0 2026-12-31 COUNT=2",
+                "INCREMENT FEAT_B empyrean 1.0 30-apr-2026 30 SIGN=ABCD 9999",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    resolver = LicenseParserResolver()
+    rows = resolver.resolve(provider="FlexNet", vendor="empyrean").parse(target_file)
+
+    assert len(rows) == 2
+    assert rows[0].feature_name == "FEAT_A"
+    assert rows[0].quantity == 2
+    assert rows[1].feature_name == "FEAT_B"
+    assert rows[1].expires_on == date(2026, 4, 30)
+    assert rows[1].quantity == 30

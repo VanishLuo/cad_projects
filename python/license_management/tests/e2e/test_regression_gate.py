@@ -1,13 +1,13 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import date
 
 from license_management.application.compare_service import CrossTargetCompareService, TargetSnapshot
 from license_management.application.import_pipeline import ImportPipelineService
 from license_management.domain.models.license_record import LicenseRecord
-from license_management.gui.dialog_flows import DialogFlowBinder
-from license_management.gui.models import FeedbackCenter
-from license_management.gui.view_model import MainListViewModel, SearchFilters
+from license_management.gui.flows.dialog_flows import DialogFlowBinder
+from license_management.gui.state.models import FeedbackCenter
+from license_management.gui.state.view_model import MainListViewModel, SearchFilters
 from license_management.infrastructure.repositories.in_memory_license_repository import (
     InMemoryLicenseRepository,
 )
@@ -95,3 +95,4 @@ def test_regression_validation_feedback_recovery_path() -> None:
         }
     )
     assert recovered.success is True
+

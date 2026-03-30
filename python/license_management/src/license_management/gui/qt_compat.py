@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from PyQt5.QtCore import QObject, QDate, QThread, Qt, pyqtSignal  # type: ignore[import-not-found]
-from PyQt5.QtGui import QColor  # type: ignore[import-not-found]
+from PyQt5.QtGui import QColor, QFont, QFontDatabase  # type: ignore[import-not-found]
 from PyQt5.QtWidgets import (  # type: ignore[import-not-found]
     QApplication,
     QComboBox,
@@ -51,6 +51,8 @@ __all__ = [
     "QDialog",
     "QDialogButtonBox",
     "QFileDialog",
+    "QFont",
+    "QFontDatabase",
     "QFormLayout",
     "QGridLayout",
     "QGroupBox",

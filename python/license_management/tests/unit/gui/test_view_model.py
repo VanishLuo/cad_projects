@@ -1,8 +1,8 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import date
 from license_management.domain.models.license_record import LicenseRecord
-from license_management.gui.view_model import MainListViewModel, SearchFilters
+from license_management.gui.state.view_model import MainListViewModel, SearchFilters
 
 
 def _record(
@@ -159,3 +159,4 @@ def test_runtime_status_override_controls_status_and_highlight() -> None:
     assert len(rows) == 1
     assert rows[0].status == "expired"
     assert rows[0].highlight_level == "danger"
+

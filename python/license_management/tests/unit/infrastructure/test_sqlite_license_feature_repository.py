@@ -11,9 +11,9 @@ from license_management.infrastructure.repositories.sqlite_license_feature_repos
 from license_management.application.license_feature_catalog import LicenseFeatureCatalogService
 
 
-def _record(license_file_path: str) -> LicenseRecord:
+def _record(record_id: str, license_file_path: str) -> LicenseRecord:
     return LicenseRecord(
-        record_id="r1",
+        record_id=record_id,
         server_name="srv-a",
         provider="FlexNet",
         vendor="cadence",
@@ -27,7 +27,7 @@ def _record(license_file_path: str) -> LicenseRecord:
 
 def test_replace_for_record_keeps_duplicate_rows_without_aggregation(tmp_path: Path) -> None:
     repo = SqliteLicenseFeatureRepository(tmp_path / "feature.sqlite3")
-    record = _record("C:/demo/a.lic")
+    record = _record("r1", "C:/demo/a.lic")
 
     repo.replace_for_record(
         record,
@@ -47,7 +47,7 @@ def test_replace_for_record_keeps_duplicate_rows_without_aggregation(tmp_path: P
 
 def test_list_for_record_matches_after_path_normalization(tmp_path: Path) -> None:
     repo = SqliteLicenseFeatureRepository(tmp_path / "feature.sqlite3")
-    stored = _record("\u202aC:/demo/a.lic")
+    stored = _record("r1", "\u202aC:/demo/a.lic")
 
     repo.replace_for_record(
         stored,
@@ -56,7 +56,7 @@ def test_list_for_record_matches_after_path_normalization(tmp_path: Path) -> Non
         ],
     )
 
-    lookup = _record("C:/demo/a.lic")
+    lookup = _record("r1", "C:/demo/a.lic")
     rows = repo.list_for_record(lookup)
     assert rows == [("FEAT-N", "2027-01-01", 2)]
 
@@ -64,7 +64,7 @@ def test_list_for_record_matches_after_path_normalization(tmp_path: Path) -> Non
 def test_feature_catalog_remove_for_record_deletes_rows(tmp_path: Path) -> None:
     repo = SqliteLicenseFeatureRepository(tmp_path / "feature.sqlite3")
     service = LicenseFeatureCatalogService(repository=repo)
-    record = _record("C:/demo/remove.lic")
+    record = _record("r1", "C:/demo/remove.lic")
 
     repo.replace_for_record(
         record,
@@ -76,11 +76,29 @@ def test_feature_catalog_remove_for_record_deletes_rows(tmp_path: Path) -> None:
     assert repo.list_for_record(record) == []
 
 
+def test_feature_rows_are_isolated_by_record_id(tmp_path: Path) -> None:
+    repo = SqliteLicenseFeatureRepository(tmp_path / "feature.sqlite3")
+    record_a = _record("r1", "C:/demo/shared.lic")
+    record_b = _record("r2", "C:/demo/shared.lic")
+
+    repo.replace_for_record(
+        record_a,
+        [ParsedLicenseFeature(feature_name="FEAT-A", expires_on=date(2028, 1, 1), quantity=1)],
+    )
+    repo.replace_for_record(
+        record_b,
+        [ParsedLicenseFeature(feature_name="FEAT-B", expires_on=date(2029, 1, 1), quantity=2)],
+    )
+
+    assert repo.list_for_record(record_a) == [("FEAT-A", "2028-01-01", 1)]
+    assert repo.list_for_record(record_b) == [("FEAT-B", "2029-01-01", 2)]
+
+
 def test_feature_repository_staging_publish_and_restart(tmp_path: Path) -> None:
     db_path = tmp_path / "feature.sqlite3"
     repo = SqliteLicenseFeatureRepository(db_path)
-    committed = _record("C:/demo/committed.lic")
-    staged = _record("C:/demo/staged.lic")
+    committed = _record("r1", "C:/demo/committed.lic")
+    staged = _record("r2", "C:/demo/staged.lic")
 
     repo.replace_for_record(
         committed,

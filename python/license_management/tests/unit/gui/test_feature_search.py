@@ -1,10 +1,10 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import date
 
 from license_management.domain.models.license_record import LicenseRecord
 from license_management.gui.feature_search import FeatureSearchController
-from license_management.gui.view_model import MainListViewModel
+from license_management.gui.state.view_model import MainListViewModel
 
 
 def _record(record_id: str, feature_name: str, server_name: str) -> LicenseRecord:
@@ -41,3 +41,4 @@ def test_feature_search_supports_keyword_and_reset() -> None:
 
     reset = controller.reset(today=date(2026, 5, 1))
     assert len(reset.rows) == 3
+
