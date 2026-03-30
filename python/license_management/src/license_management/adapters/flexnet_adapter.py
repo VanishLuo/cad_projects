@@ -140,7 +140,9 @@ class FlexNetAdapter:
             rollback_succeeded=rollback_succeeded,
         )
 
-    def stop(self, *, host: str, username: str, password: str | None = None) -> ProviderOperationResult:
+    def stop(
+        self, *, host: str, username: str, password: str | None = None
+    ) -> ProviderOperationResult:
         """Stop license service directly using lmutil lmdown -force.
 
         Chinese:

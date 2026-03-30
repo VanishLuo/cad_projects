@@ -28,6 +28,7 @@ from license_management.infrastructure.repositories.sqlite_license_repository im
     SqliteLicenseRepository,
 )
 
+
 @dataclass(slots=True)
 class UiContext:
     repository: SqliteLicenseRepository

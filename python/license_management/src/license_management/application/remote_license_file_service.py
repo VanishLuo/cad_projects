@@ -43,7 +43,9 @@ class RemoteLicenseFileService:
         )
         if exit_code == 0:
             return RemoteTextReadResult(success=True, content=stdout)
-        return RemoteTextReadResult(success=False, error=self._classify_read_error(exit_code, stderr))
+        return RemoteTextReadResult(
+            success=False, error=self._classify_read_error(exit_code, stderr)
+        )
 
     def save_text(
         self,
@@ -59,11 +61,7 @@ class RemoteLicenseFileService:
             delimiter = f"{delimiter}_X"
 
         quoted_path = shlex.quote(remote_path)
-        remote_script = (
-            f"cat > {quoted_path} <<'{delimiter}'\n"
-            f"{content}\n"
-            f"{delimiter}\n"
-        )
+        remote_script = f"cat > {quoted_path} <<'{delimiter}'\n" f"{content}\n" f"{delimiter}\n"
         command = f"sh -lc {shlex.quote(remote_script)}"
         exit_code, _stdout, stderr = self._executor.run(
             host=host,
@@ -74,7 +72,9 @@ class RemoteLicenseFileService:
         )
         if exit_code == 0:
             return RemoteTextWriteResult(success=True)
-        return RemoteTextWriteResult(success=False, error=self._classify_write_error(exit_code, stderr))
+        return RemoteTextWriteResult(
+            success=False, error=self._classify_write_error(exit_code, stderr)
+        )
 
     def _classify_read_error(self, exit_code: int, stderr: str) -> str:
         lower_error = stderr.lower()

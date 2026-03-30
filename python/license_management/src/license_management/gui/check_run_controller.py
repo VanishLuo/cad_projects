@@ -62,7 +62,9 @@ class CheckRunController:
         thread.start()
         return True
 
-    def _handle_finished(self, scanned: int, issues_raw: object, runtime_statuses_raw: object) -> None:
+    def _handle_finished(
+        self, scanned: int, issues_raw: object, runtime_statuses_raw: object
+    ) -> None:
         self._set_in_progress(False)
         self._thread = None
         self._worker = None

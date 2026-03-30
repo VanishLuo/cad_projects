@@ -80,7 +80,9 @@ def load_license_parser_config() -> LicenseParserConfig:
             )
 
     if not routes:
-        routes.append(ParserRouteConfig(provider_pattern="*", vendor_pattern="*", profile=default_profile))
+        routes.append(
+            ParserRouteConfig(provider_pattern="*", vendor_pattern="*", profile=default_profile)
+        )
 
     return LicenseParserConfig(
         default_profile=default_profile,

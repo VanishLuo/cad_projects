@@ -4,8 +4,8 @@ from license_management.gui.dialogs.remote_license_editor_dialog import RemoteLi
 from license_management.gui.dialogs.record_dialog import RecordDialog
 
 __all__ = [
-	"RecordDialog",
-	"LicenseFileDetailDialog",
-	"CheckResultDialog",
-	"RemoteLicenseEditorDialog",
+    "RecordDialog",
+    "LicenseFileDetailDialog",
+    "CheckResultDialog",
+    "RemoteLicenseEditorDialog",
 ]

@@ -101,7 +101,9 @@ class ConfigurableFeatureParser:
     def __init__(self, profile: ParserProfileConfig) -> None:
         self._feature_keyword = profile.feature_keyword.upper()
         self._feature_name_token_index = max(0, profile.feature_name_token_index)
-        self._quantity_regexes = [re.compile(item, re.IGNORECASE) for item in profile.quantity_regexes]
+        self._quantity_regexes = [
+            re.compile(item, re.IGNORECASE) for item in profile.quantity_regexes
+        ]
         self._expiry_regexes = [re.compile(item, re.IGNORECASE) for item in profile.expiry_regexes]
         self._cadence_date_regex = re.compile(r"\b(\d{1,2})-([A-Za-z]{3})-(\d{4})\b")
         self._permanent_regex = re.compile(r"\b(permanent|perpetual)\b", re.IGNORECASE)

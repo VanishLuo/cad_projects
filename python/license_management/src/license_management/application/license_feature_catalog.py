@@ -63,7 +63,9 @@ class LicenseFeatureCatalogService:
         try:
             features = parser.parse(Path(normalized_path))
         except FileNotFoundError:
-            remote_content = self._load_remote_license_content(record=record, normalized_path=normalized_path)
+            remote_content = self._load_remote_license_content(
+                record=record, normalized_path=normalized_path
+            )
             if remote_content is None:
                 self._repository.delete_for_record(record)
                 return CatalogSyncResult(feature_groups=0, total_quantity=0, license_missing=True)
@@ -76,7 +78,9 @@ class LicenseFeatureCatalogService:
             license_missing=False,
         )
 
-    def _load_remote_license_content(self, *, record: LicenseRecord, normalized_path: str) -> str | None:
+    def _load_remote_license_content(
+        self, *, record: LicenseRecord, normalized_path: str
+    ) -> str | None:
         if self._ssh_executor is None:
             return None
 

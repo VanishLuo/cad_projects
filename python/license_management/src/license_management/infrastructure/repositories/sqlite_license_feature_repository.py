@@ -36,8 +36,7 @@ class SqliteLicenseFeatureRepository:
         with sqlite3.connect(self._db_path) as conn:
             conn.execute("BEGIN IMMEDIATE")
             conn.execute(f"DELETE FROM {self._staging_table}")
-            conn.execute(
-                f"""
+            conn.execute(f"""
                 INSERT INTO {self._staging_table} (
                     server_name,
                     provider,
@@ -58,8 +57,7 @@ class SqliteLicenseFeatureRepository:
                     quantity,
                     updated_at
                 FROM {self._committed_table}
-                """
-            )
+                """)
             conn.commit()
         self._current_workspace = "staging"
 
@@ -67,8 +65,7 @@ class SqliteLicenseFeatureRepository:
         with sqlite3.connect(self._db_path) as conn:
             conn.execute("BEGIN IMMEDIATE")
             conn.execute(f"DELETE FROM {self._committed_table}")
-            conn.execute(
-                f"""
+            conn.execute(f"""
                 INSERT INTO {self._committed_table} (
                     server_name,
                     provider,
@@ -89,8 +86,7 @@ class SqliteLicenseFeatureRepository:
                     quantity,
                     updated_at
                 FROM {self._staging_table}
-                """
-            )
+                """)
             row = conn.execute(f"SELECT COUNT(*) FROM {self._committed_table}").fetchone()
             conn.execute(f"DELETE FROM {self._staging_table}")
             conn.commit()
@@ -98,7 +94,9 @@ class SqliteLicenseFeatureRepository:
         return int(row[0]) if row is not None else 0
 
     def _active_table(self) -> str:
-        return self._staging_table if self._current_workspace == "staging" else self._committed_table
+        return (
+            self._staging_table if self._current_workspace == "staging" else self._committed_table
+        )
 
     def _detect_initial_workspace(self) -> str:
         if self._count_rows(self._staging_table) > 0:
@@ -114,14 +112,14 @@ class SqliteLicenseFeatureRepository:
         with sqlite3.connect(self._db_path) as conn:
             for table_name in (self._committed_table, self._staging_table):
                 existing_cols = {
-                    str(row[1]) for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+                    str(row[1])
+                    for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()
                 }
                 # Migrate legacy schema that used composite primary key (dedup behavior).
                 if existing_cols and "feature_id" not in existing_cols:
                     conn.execute(f"DROP TABLE {table_name}")
 
-                conn.execute(
-                    f"""
+                conn.execute(f"""
                     CREATE TABLE IF NOT EXISTS {table_name} (
                         feature_id INTEGER PRIMARY KEY AUTOINCREMENT,
                         server_name TEXT NOT NULL,
@@ -133,11 +131,12 @@ class SqliteLicenseFeatureRepository:
                         quantity INTEGER NOT NULL,
                         updated_at TEXT NOT NULL
                     )
-                    """
-                )
+                    """)
             conn.commit()
 
-    def replace_for_record(self, record: LicenseRecord, features: list[ParsedLicenseFeature]) -> None:
+    def replace_for_record(
+        self, record: LicenseRecord, features: list[ParsedLicenseFeature]
+    ) -> None:
         self.delete_for_record(record)
         if not features:
             return
@@ -218,4 +217,6 @@ class SqliteLicenseFeatureRepository:
                 ),
             ).fetchall()
 
-        return [(str(feature), str(expires_on), int(quantity)) for feature, expires_on, quantity in rows]
+        return [
+            (str(feature), str(expires_on), int(quantity)) for feature, expires_on, quantity in rows
+        ]

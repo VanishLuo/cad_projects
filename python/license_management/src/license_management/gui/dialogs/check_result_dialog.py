@@ -1,7 +1,15 @@
 from __future__ import annotations
 
 from license_management.application.record_check_service import RecordCheckIssue
-from license_management.gui.qt_compat import QDialog, QGroupBox, QLabel, QPushButton, QTextEdit, QVBoxLayout, QWidget
+from license_management.gui.qt_compat import (
+    QDialog,
+    QGroupBox,
+    QLabel,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
 
 class CheckResultDialog(QDialog):

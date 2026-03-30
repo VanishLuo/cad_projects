@@ -209,9 +209,7 @@ class RecordCheckService:
         cache: dict[tuple[str, str], str | None],
     ) -> str | None:
         process_hint = (
-            record.process_name.strip()
-            or record.start_executable_path.strip()
-            or "lmgrd"
+            record.process_name.strip() or record.start_executable_path.strip() or "lmgrd"
         )
         if "\n" in process_hint or "\r" in process_hint:
             return "process name contains invalid newline characters"
@@ -260,7 +258,7 @@ class RecordCheckService:
     def _build_process_probe_command(self, process_hint: str) -> str:
         escaped = shlex.quote(process_hint)
         return (
-            "sh -lc \"if command -v pgrep >/dev/null 2>&1; "
+            'sh -lc "if command -v pgrep >/dev/null 2>&1; '
             f"then pgrep -f -- {escaped} >/dev/null 2>&1; "
-            f"else ps -ef | grep -F -- {escaped} | grep -v grep >/dev/null 2>&1; fi\""
+            f'else ps -ef | grep -F -- {escaped} | grep -v grep >/dev/null 2>&1; fi"'
         )

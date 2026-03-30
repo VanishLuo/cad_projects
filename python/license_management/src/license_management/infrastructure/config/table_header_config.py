@@ -110,9 +110,7 @@ def _normalize_gui_order(value: object) -> tuple[str, ...]:
     return tuple(normalized)
 
 
-def _normalize_required_fields(
-    value: object, sqlite_columns: dict[str, str]
-) -> tuple[str, ...]:
+def _normalize_required_fields(value: object, sqlite_columns: dict[str, str]) -> tuple[str, ...]:
     if not isinstance(value, list):
         defaults = ("server_name", "provider", "prot")
         return tuple(field for field in defaults if field in sqlite_columns)

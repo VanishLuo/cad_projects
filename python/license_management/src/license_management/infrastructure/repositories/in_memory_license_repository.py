@@ -32,7 +32,11 @@ class InMemoryLicenseRepository:
         return len(self._committed_records)
 
     def _active_records(self) -> dict[str, LicenseRecord]:
-        return self._staging_records if self._current_workspace == "staging" else self._committed_records
+        return (
+            self._staging_records
+            if self._current_workspace == "staging"
+            else self._committed_records
+        )
 
     def upsert(self, record: LicenseRecord) -> None:
         self._active_records()[record.record_id] = record

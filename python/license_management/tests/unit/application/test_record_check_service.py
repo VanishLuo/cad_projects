@@ -84,7 +84,14 @@ def test_check_returns_issue_when_ssh_failed() -> None:
         ssh_password="pwd",
     )
 
-    issues = service.check([_record(record_id="r1", license_file_path="",)])
+    issues = service.check(
+        [
+            _record(
+                record_id="r1",
+                license_file_path="",
+            )
+        ]
+    )
 
     assert len(issues) == 1
     assert issues[0].record_id == "r1"

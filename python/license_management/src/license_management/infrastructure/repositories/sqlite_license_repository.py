@@ -38,12 +38,10 @@ class SqliteLicenseRepository:
         with sqlite3.connect(self._db_path) as conn:
             conn.execute("BEGIN IMMEDIATE")
             conn.execute(f"DELETE FROM {self._staging_table}")
-            conn.execute(
-                f"""
+            conn.execute(f"""
                 INSERT INTO {self._staging_table} ({', '.join(self._cols.values())})
                 SELECT {', '.join(self._cols.values())} FROM {self._committed_table}
-                """
-            )
+                """)
             conn.commit()
         self._current_workspace = "staging"
 
@@ -51,12 +49,10 @@ class SqliteLicenseRepository:
         with sqlite3.connect(self._db_path) as conn:
             conn.execute("BEGIN IMMEDIATE")
             conn.execute(f"DELETE FROM {self._committed_table}")
-            conn.execute(
-                f"""
+            conn.execute(f"""
                 INSERT INTO {self._committed_table} ({', '.join(self._cols.values())})
                 SELECT {', '.join(self._cols.values())} FROM {self._staging_table}
-                """
-            )
+                """)
             row = conn.execute(f"SELECT COUNT(*) FROM {self._committed_table}").fetchone()
             conn.execute(f"DELETE FROM {self._staging_table}")
             conn.commit()
@@ -64,7 +60,9 @@ class SqliteLicenseRepository:
         return int(row[0]) if row is not None else 0
 
     def _active_table(self) -> str:
-        return self._staging_table if self._current_workspace == "staging" else self._committed_table
+        return (
+            self._staging_table if self._current_workspace == "staging" else self._committed_table
+        )
 
     def _detect_initial_workspace(self) -> str:
         staging_count = self._count_rows(self._staging_table)
@@ -84,14 +82,17 @@ class SqliteLicenseRepository:
                 continue
             create_cols.append(f"{column} TEXT NOT NULL DEFAULT ''")
 
-        committed_sql = f"CREATE TABLE IF NOT EXISTS {self._committed_table} ({', '.join(create_cols)})"
+        committed_sql = (
+            f"CREATE TABLE IF NOT EXISTS {self._committed_table} ({', '.join(create_cols)})"
+        )
         staging_sql = f"CREATE TABLE IF NOT EXISTS {self._staging_table} ({', '.join(create_cols)})"
         with sqlite3.connect(self._db_path) as conn:
             conn.execute(committed_sql)
             conn.execute(staging_sql)
             for table_name in (self._committed_table, self._staging_table):
                 existing_cols = {
-                    str(row[1]) for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+                    str(row[1])
+                    for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()
                 }
                 for field, column in self._cols.items():
                     if column in existing_cols:
