@@ -23,9 +23,11 @@ class HappyPathExecutor:
         *,
         host: str,
         username: str,
+        password: str | None = None,
         command: str,
         timeout_seconds: int,
     ) -> tuple[int, str, str]:
+        _ = password
         return 0, "ok", ""
 
 

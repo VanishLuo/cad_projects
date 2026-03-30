@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+from pytest import MonkeyPatch
 
 from license_management.adapters.ssh_command_executor import OpenSshCommandExecutor
 
@@ -12,8 +13,8 @@ class _Completed:
         self.stderr = stderr
 
 
-def test_run_success(monkeypatch) -> None:
-    def _fake_run(*args, **kwargs):
+def test_run_success(monkeypatch: MonkeyPatch) -> None:
+    def _fake_run(*args: object, **kwargs: object) -> _Completed:
         _ = (args, kwargs)
         return _Completed(0, "ok", "")
 
@@ -33,8 +34,8 @@ def test_run_success(monkeypatch) -> None:
     assert err == ""
 
 
-def test_run_file_not_found(monkeypatch) -> None:
-    def _fake_run(*args, **kwargs):
+def test_run_file_not_found(monkeypatch: MonkeyPatch) -> None:
+    def _fake_run(*args: object, **kwargs: object) -> _Completed:
         _ = (args, kwargs)
         raise FileNotFoundError("ssh")
 
@@ -54,8 +55,8 @@ def test_run_file_not_found(monkeypatch) -> None:
     assert "not found" in err
 
 
-def test_run_timeout(monkeypatch) -> None:
-    def _fake_run(*args, **kwargs):
+def test_run_timeout(monkeypatch: MonkeyPatch) -> None:
+    def _fake_run(*args: object, **kwargs: object) -> _Completed:
         _ = (args, kwargs)
         raise subprocess.TimeoutExpired(cmd="ssh", timeout=5, output="partial", stderr="slow")
 

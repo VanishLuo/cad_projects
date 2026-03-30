@@ -220,7 +220,7 @@ class DialogFlowBinder:
         return DialogResult(success=True, feedback=message), report
 
     def export_records(self, *, file_path: Path, records: list[LicenseRecord]) -> DialogResult:
-        serialized = [
+        serialized: list[dict[str, object]] = [
             {
                 "record_id": record.record_id,
                 "server_name": record.server_name,
@@ -239,11 +239,13 @@ class DialogFlowBinder:
         feature_rows = self._collect_feature_rows(records)
         if feature_rows:
             feature_index: dict[str, list[dict[str, str | int]]] = {}
-            for row in feature_rows:
-                record_id = str(row.get("record_id", "")).strip()
-                feature_index.setdefault(record_id, []).append(row)
-            for row in serialized:
-                row["features"] = feature_index.get(str(row.get("record_id", "")).strip(), [])
+            for feature_row in feature_rows:
+                record_id = str(feature_row.get("record_id", "")).strip()
+                feature_index.setdefault(record_id, []).append(feature_row)
+            for serialized_row in serialized:
+                serialized_row["features"] = feature_index.get(
+                    str(serialized_row.get("record_id", "")).strip(), []
+                )
 
         suffix = file_path.suffix.lower()
         try:
@@ -284,7 +286,9 @@ class DialogFlowBinder:
             workbook_cls = getattr(openpyxl, "Workbook")
             font_cls = getattr(importlib.import_module("openpyxl.styles"), "Font")
             alignment_cls = getattr(importlib.import_module("openpyxl.styles"), "Alignment")
-            get_column_letter = getattr(importlib.import_module("openpyxl.utils"), "get_column_letter")
+            get_column_letter = getattr(
+                importlib.import_module("openpyxl.utils"), "get_column_letter"
+            )
         except ImportError as exc:
             raise ValueError("openpyxl is required for Excel export") from exc
 
@@ -304,9 +308,9 @@ class DialogFlowBinder:
             grouped_rows["UNKNOWN_VENDOR"] = []
 
         grouped_feature_rows: dict[str, list[dict[str, str | int]]] = {}
-        for row in feature_rows:
-            vendor = str(row.get("vendor", "")).strip() or "UNKNOWN_VENDOR"
-            grouped_feature_rows.setdefault(vendor, []).append(row)
+        for feature_row in feature_rows:
+            vendor = str(feature_row.get("vendor", "")).strip() or "UNKNOWN_VENDOR"
+            grouped_feature_rows.setdefault(vendor, []).append(feature_row)
 
         workbook.remove(sheet)
         used_sheet_names: set[str] = set()
@@ -323,7 +327,9 @@ class DialogFlowBinder:
             feature_headers = [name for name, _ in feature_header_mapping]
             worksheet.append(headers + feature_headers)
 
-            vendor_rows = sorted(grouped_rows[vendor], key=lambda item: str(item.get("record_id", "")))
+            vendor_rows = sorted(
+                grouped_rows[vendor], key=lambda item: str(item.get("record_id", ""))
+            )
             vendor_features = sorted(
                 vendor_features,
                 key=lambda item: (
@@ -340,7 +346,10 @@ class DialogFlowBinder:
                     else [""] * len(headers)
                 )
                 right_values = (
-                    [vendor_features[idx].get(source_key, "") for _, source_key in feature_header_mapping]
+                    [
+                        vendor_features[idx].get(source_key, "")
+                        for _, source_key in feature_header_mapping
+                    ]
                     if idx < len(vendor_features)
                     else [""] * len(feature_headers)
                 )
@@ -349,11 +358,14 @@ class DialogFlowBinder:
             # Fill down stable columns to improve readability when one side has more rows.
             stable_cols = list(range(1, len(headers) + 1))
             for col in stable_cols:
-                for row in range(3, worksheet.max_row + 1):
-                    current = worksheet.cell(row=row, column=col).value
-                    previous = worksheet.cell(row=row - 1, column=col).value
-                    if (current is None or str(current).strip() == "") and previous not in (None, ""):
-                        worksheet.cell(row=row, column=col, value=previous)
+                for row_idx in range(3, worksheet.max_row + 1):
+                    current = worksheet.cell(row=row_idx, column=col).value
+                    previous = worksheet.cell(row=row_idx - 1, column=col).value
+                    if (current is None or str(current).strip() == "") and previous not in (
+                        None,
+                        "",
+                    ):
+                        worksheet.cell(row=row_idx, column=col, value=previous)
 
             # Apply Arial font and auto-fit widths for all populated columns.
             arial_font = font_cls(name="Arial")
@@ -369,10 +381,14 @@ class DialogFlowBinder:
                     cell.font = arial_font
                     cell.alignment = left_align
                     text = "" if cell.value is None else str(cell.value)
-                    max_width_by_col[cell.column] = max(max_width_by_col.get(cell.column, 0), len(text))
+                    max_width_by_col[cell.column] = max(
+                        max_width_by_col.get(cell.column, 0), len(text)
+                    )
 
             for col, width in max_width_by_col.items():
-                worksheet.column_dimensions[get_column_letter(col)].width = min(max(10, width + 2), 60)
+                worksheet.column_dimensions[get_column_letter(col)].width = min(
+                    max(10, width + 2), 60
+                )
 
         workbook.save(file_path)
 

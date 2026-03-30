@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
+from pytest import MonkeyPatch
 
 from license_management.application.license_file_parser import (
     LicenseParserResolver,
@@ -67,7 +68,9 @@ def test_license_record_expander_splits_rows_by_feature_quantity(tmp_path: Path)
     assert all(item.expires_on == date(2026, 12, 31) for item in expanded)
 
 
-def test_parser_resolver_routes_by_provider_and_vendor(monkeypatch, tmp_path: Path) -> None:
+def test_parser_resolver_routes_by_provider_and_vendor(
+    monkeypatch: MonkeyPatch, tmp_path: Path
+) -> None:
     config = LicenseParserConfig(
         default_profile="default",
         profiles={
@@ -85,7 +88,9 @@ def test_parser_resolver_routes_by_provider_and_vendor(monkeypatch, tmp_path: Pa
             ),
         },
         routes=(
-            ParserRouteConfig(provider_pattern="CustomProvider", vendor_pattern="ACME*", profile="acme"),
+            ParserRouteConfig(
+                provider_pattern="CustomProvider", vendor_pattern="ACME*", profile="acme"
+            ),
             ParserRouteConfig(provider_pattern="*", vendor_pattern="*", profile="default"),
         ),
     )
@@ -148,7 +153,7 @@ def test_parser_supports_siemens_increment_keyword(tmp_path: Path) -> None:
         "\n".join(
             [
                 "FEATURE IGNORE_THIS vendor 1.0 2026-12-31 COUNT=1",
-                "INCREMENT ALPS_AS empyrean 1.0 30-apr-2026 300 SIGN=\"xxxx\"",
+                'INCREMENT ALPS_AS empyrean 1.0 30-apr-2026 300 SIGN="xxxx"',
             ]
         ),
         encoding="utf-8",

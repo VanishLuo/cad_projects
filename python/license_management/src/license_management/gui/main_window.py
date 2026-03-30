@@ -51,7 +51,9 @@ from license_management.gui.validation_feedback import to_license_record, valida
 from license_management.gui.view_model import MainListViewModel
 from license_management.gui.workspace_action_policy import build_workspace_action_policy
 from license_management.infrastructure.config.table_header_config import load_table_header_config
-from license_management.infrastructure.repositories.sqlite_license_repository import SqliteLicenseRepository
+from license_management.infrastructure.repositories.sqlite_license_repository import (
+    SqliteLicenseRepository,
+)
 
 
 class UiContextProtocol(Protocol):
@@ -506,7 +508,9 @@ class MainWindow(QMainWindow):
             self._set_action_buttons_enabled(True)
             QMessageBox.information(self, "Check running", "Check is still running, please wait.")
 
-    def _on_check_finished(self, scanned: int, issues_raw: object, runtime_statuses_raw: object) -> None:
+    def _on_check_finished(
+        self, scanned: int, issues_raw: object, runtime_statuses_raw: object
+    ) -> None:
         issues = cast(list[RecordCheckIssue], issues_raw)
         mapped_issues = [self._map_check_issue(issue) for issue in issues]
         runtime_statuses = cast(dict[str, str], runtime_statuses_raw)
@@ -533,9 +537,15 @@ class MainWindow(QMainWindow):
         self._sync_runtime_statuses_from_workspace()
         self._refresh_after_mutation(f"Check completed: scanned={scanned}, issues={len(issues)}")
 
-        active_count = sum(1 for value in runtime_statuses.values() if value == ExpirationStatus.ACTIVE.value)
-        expired_count = sum(1 for value in runtime_statuses.values() if value == ExpirationStatus.EXPIRED.value)
-        unknown_count = sum(1 for value in runtime_statuses.values() if value == ExpirationStatus.UNKNOWN.value)
+        active_count = sum(
+            1 for value in runtime_statuses.values() if value == ExpirationStatus.ACTIVE.value
+        )
+        expired_count = sum(
+            1 for value in runtime_statuses.values() if value == ExpirationStatus.EXPIRED.value
+        )
+        unknown_count = sum(
+            1 for value in runtime_statuses.values() if value == ExpirationStatus.UNKNOWN.value
+        )
 
         blocking_statuses = {"license_not_found", "ssh_failed", "start_command_error"}
         blocking_issues = [item for item in mapped_issues if item.status in blocking_statuses]
@@ -674,7 +684,9 @@ class MainWindow(QMainWindow):
             button.setToolTip(policy.action_tooltips.get(key, ""))
 
         if not policy.table_editable:
-            self._table.setEditTriggers(_qt_enum_member(QTableWidget, "EditTrigger", "NoEditTriggers"))
+            self._table.setEditTriggers(
+                _qt_enum_member(QTableWidget, "EditTrigger", "NoEditTriggers")
+            )
             return
         self._table.setEditTriggers(self._editable_table_triggers)
 
@@ -718,7 +730,23 @@ class MainWindow(QMainWindow):
             self._refresh_after_mutation("Table edit reverted due to invalid value.")
             return
 
-        updated = replace(record, **{column_name: value})
+        updated: LicenseRecord
+        if column_name == "expires_on":
+            try:
+                parsed_date = date.fromisoformat(value)
+            except ValueError:
+                self._append_log(
+                    (
+                        "table_edit_blocked: field=expires_on must be ISO date "
+                        f"(YYYY-MM-DD) for record_id={record_id}"
+                    ),
+                    level="error",
+                )
+                self._refresh_after_mutation("Table edit reverted due to invalid date format.")
+                return
+            updated = replace(record, expires_on=parsed_date)
+        else:
+            updated = replace(record, **cast(dict[str, Any], {column_name: value}))
         self._ctx.repository.upsert(updated)
         self._clear_current_runtime_statuses()
         self._refresh_after_mutation(f"Table updated: record_id={record_id}, field={column_name}")
@@ -848,14 +876,18 @@ class MainWindow(QMainWindow):
     def _start_stop(self, action: str) -> None:
         selected = self._selected_record()
         if selected is None:
-            self._append_log("service_action_blocked: Please select one table row first.", level="error")
+            self._append_log(
+                "service_action_blocked: Please select one table row first.", level="error"
+            )
             self._feedback.setText("Please select one table row first.")
             self._log_event("service_action_blocked", action=action, reason="no_row_selected")
             return
 
         host = selected.server_name.strip()
         if host == "":
-            self._append_log("service_action_blocked: Selected row has empty server host.", level="error")
+            self._append_log(
+                "service_action_blocked: Selected row has empty server host.", level="error"
+            )
             self._feedback.setText("Selected row has empty server host.")
             self._log_event(
                 "service_action_blocked",
@@ -921,7 +953,9 @@ class MainWindow(QMainWindow):
             self._append_log("edit_blocked: Selected row has empty server host.", level="error")
             return
         if remote_path == "":
-            self._append_log("edit_blocked: Selected row has empty license file path.", level="error")
+            self._append_log(
+                "edit_blocked: Selected row has empty license file path.", level="error"
+            )
             return
 
         username = self._ctx.ssh_credentials.username.strip()
@@ -996,7 +1030,9 @@ class MainWindow(QMainWindow):
 
         selected_record = self._ctx.repository.get(record_id)
         if selected_record is None:
-            self._log_event("row_double_click_ignored", reason="record_not_found", record_id=record_id)
+            self._log_event(
+                "row_double_click_ignored", reason="record_not_found", record_id=record_id
+            )
             return
 
         license_file_path = selected_record.license_file_path.strip()
@@ -1062,10 +1098,7 @@ class MainWindow(QMainWindow):
             key = (feature, expires_on)
             grouped[key] = grouped.get(key, 0) + 1
 
-        rows = [
-            (feature, expires_on, count)
-            for (feature, expires_on), count in grouped.items()
-        ]
+        rows = [(feature, expires_on, count) for (feature, expires_on), count in grouped.items()]
         rows.sort(key=lambda item: (item[1], item[0].lower()))
         return rows
 
@@ -1150,9 +1183,7 @@ class MainWindow(QMainWindow):
         elif level == "success":
             color = "#1b5e20"
         text = html.escape(f"[{stamp}] {message}").replace("\n", "<br/>")
-        self._log.append(
-            f"<span style=\"color:{color}; white-space:pre-wrap;\">{text}</span>"
-        )
+        self._log.append(f'<span style="color:{color}; white-space:pre-wrap;">{text}</span>')
 
     def _log_event(self, event: str, **fields: object) -> None:
         # Keep log panel focused on user-facing outcomes.
@@ -1185,7 +1216,9 @@ class MainWindow(QMainWindow):
                     item = QTableWidgetItem(value)
                     column_name = self._table_columns[col_index]
                     if column_name not in self._editable_table_columns:
-                        item.setFlags(item.flags() & ~_qt_enum_member(Qt, "ItemFlag", "ItemIsEditable"))
+                        item.setFlags(
+                            item.flags() & ~_qt_enum_member(Qt, "ItemFlag", "ItemIsEditable")
+                        )
                     if column_name == "status":
                         if value == ExpirationStatus.ACTIVE.value:
                             item.setForeground(QColor("#1b5e20"))

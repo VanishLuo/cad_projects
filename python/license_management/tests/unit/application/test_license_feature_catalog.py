@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
+from typing import cast
 
 from license_management.application.license_feature_catalog import LicenseFeatureCatalogService
-from license_management.application.license_file_parser import ParsedLicenseFeature
+from license_management.application.license_file_parser import (
+    LicenseParserResolver,
+    ParsedLicenseFeature,
+)
 from license_management.domain.models.license_record import LicenseRecord
 from license_management.infrastructure.repositories.sqlite_license_feature_repository import (
     SqliteLicenseFeatureRepository,
@@ -12,7 +16,12 @@ from license_management.infrastructure.repositories.sqlite_license_feature_repos
 
 
 class _StubParser:
-    def __init__(self, *, file_features: list[ParsedLicenseFeature], text_features: list[ParsedLicenseFeature]) -> None:
+    def __init__(
+        self,
+        *,
+        file_features: list[ParsedLicenseFeature],
+        text_features: list[ParsedLicenseFeature],
+    ) -> None:
         self._file_features = file_features
         self._text_features = text_features
 
@@ -74,12 +83,14 @@ def test_sync_from_record_falls_back_to_ssh_when_local_path_missing(tmp_path: Pa
     repo = SqliteLicenseFeatureRepository(tmp_path / "feature.sqlite3")
     parser = _StubParser(
         file_features=[],
-        text_features=[ParsedLicenseFeature(feature_name="FEAT-SSH", expires_on=date(2027, 1, 1), quantity=3)],
+        text_features=[
+            ParsedLicenseFeature(feature_name="FEAT-SSH", expires_on=date(2027, 1, 1), quantity=3)
+        ],
     )
     ssh = _StubSshExecutor(exit_code=0, stdout="FEATURE FEAT-SSH vendor 1.0 1-jan-2027 3")
     service = LicenseFeatureCatalogService(
         repository=repo,
-        resolver=_StubResolver(parser),
+        resolver=cast(LicenseParserResolver, _StubResolver(parser)),
         ssh_executor=ssh,
         ssh_username="operator",
         ssh_password="secret",
@@ -101,7 +112,7 @@ def test_sync_from_record_reports_missing_when_ssh_fetch_fails(tmp_path: Path) -
     ssh = _StubSshExecutor(exit_code=1, stderr="not found")
     service = LicenseFeatureCatalogService(
         repository=repo,
-        resolver=_StubResolver(parser),
+        resolver=cast(LicenseParserResolver, _StubResolver(parser)),
         ssh_executor=ssh,
         ssh_username="operator",
     )
