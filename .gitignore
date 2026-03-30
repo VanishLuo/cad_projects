@@ -22,6 +22,10 @@ build/
 dist/
 *.egg-info/
 
+# Local runtime data
+python/license_management/data/
+*.sqlite3
+
 # Editor and OS
 .vscode/
 .DS_Store

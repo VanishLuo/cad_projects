@@ -1,6 +1,11 @@
 {
   "sqlite": {
     "table_name": "license_records",
+    "required_fields": [
+      "server_name",
+      "provider",
+      "prot"
+    ],
     "columns": {
       "record_id": "record_id",
       "server_name": "server_name",
@@ -32,5 +37,20 @@
       "license_file_path": "License File Path",
       "status": "Status"
     }
+  },
+  "project": {
+    "field_whitelist": [
+      "record_id",
+      "server_name",
+      "provider",
+      "prot",
+      "feature_name",
+      "process_name",
+      "expires_on",
+      "vendor",
+      "start_executable_path",
+      "license_file_path",
+      "start_option_override"
+    ]
   }
 }

@@ -32,6 +32,7 @@ class SshCommandExecutor(Protocol):
         *,
         host: str,
         username: str,
+        password: str | None,
         command: str,
         timeout_seconds: int,
     ) -> tuple[int, str, str]: ...

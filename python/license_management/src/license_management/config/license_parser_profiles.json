@@ -1,0 +1,76 @@
+{
+  "default_profile": "default",
+  "profiles": {
+    "default": {
+      "feature_keyword": "FEATURE",
+      "feature_name_token_index": 1,
+      "quantity_regexes": [
+        "\\b(?:COUNT|QTY|QUANTITY)\\s*=\\s*(\\d+)\\b"
+      ],
+      "expiry_regexes": [
+        "\\b(\\d{4}-\\d{2}-\\d{2})\\b",
+        "\\b(\\d{4}/\\d{2}/\\d{2})\\b"
+      ]
+    },
+    "flexnet": {
+      "feature_keyword": "FEATURE",
+      "feature_name_token_index": 1,
+      "quantity_regexes": [
+        "\\b(?:COUNT|QTY|QUANTITY)\\s*=\\s*(\\d+)\\b",
+        "\\b(?:DUP_GROUP|FLOAT_OK)\\s*=\\s*(\\d+)\\b"
+      ],
+      "expiry_regexes": [
+        "\\b(\\d{4}-\\d{2}-\\d{2})\\b",
+        "\\b(\\d{4}/\\d{2}/\\d{2})\\b"
+      ]
+    },
+    "cadence": {
+      "feature_keyword": "FEATURE",
+      "feature_name_token_index": 1,
+      "quantity_regexes": [
+        "\\b(?:COUNT|QTY|QUANTITY)\\s*=\\s*(\\d+)\\b",
+        "\\b(\\d+)\\b$"
+      ],
+      "expiry_regexes": [
+        "\\b(\\d{1,2}-[A-Za-z]{3}-\\d{4})\\b",
+        "\\b(\\d{4}-\\d{2}-\\d{2})\\b",
+        "\\b(\\d{4}/\\d{2}/\\d{2})\\b"
+      ]
+    },
+    "siemens_increment": {
+      "feature_keyword": "INCREMENT",
+      "feature_name_token_index": 1,
+      "quantity_regexes": [
+        "\\b(?:COUNT|QTY|QUANTITY)\\s*=\\s*(\\d+)\\b",
+        "\\b(\\d+)\\b$"
+      ],
+      "expiry_regexes": [
+        "\\b(\\d{1,2}-[A-Za-z]{3}-\\d{4})\\b",
+        "\\b(\\d{4}-\\d{2}-\\d{2})\\b",
+        "\\b(\\d{4}/\\d{2}/\\d{2})\\b"
+      ]
+    }
+  },
+  "routes": [
+    {
+      "provider": "FlexNet",
+      "vendor": "siemens*",
+      "profile": "siemens_increment"
+    },
+    {
+      "provider": "FlexNet",
+      "vendor": "cadence*",
+      "profile": "cadence"
+    },
+    {
+      "provider": "FlexNet",
+      "vendor": "*",
+      "profile": "flexnet"
+    },
+    {
+      "provider": "*",
+      "vendor": "*",
+      "profile": "default"
+    }
+  ]
+}

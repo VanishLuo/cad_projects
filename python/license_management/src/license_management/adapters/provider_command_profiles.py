@@ -1,30 +1,24 @@
 """Provider start-option profile loader and resolver.
 
-English:
 This module centralizes provider-specific command option rules used to compose
-startup commands, and reads them from an external JSON file so option changes
+startup commands and reads them from an external JSON file so option changes
 do not require source-code edits.
 
-Chinese:
-本模块用于集中管理 provider 启动参数策略：从外部 JSON 读取规则并生成命令
-选项，避免每次改参数都修改 Python 源码。
+Config source:
+        src/license_management/config/provider_start_options.json
 
-Config source / 配置来源:
-    src/license_management/config/provider_start_options.json
+Supported keys:
+        - start_file_option: primary option before license file path
+        - log_option: optional log option token
+        - log_file_template: optional log file template
+            placeholders:
+                - {date}: current date in YYYY-MM-DD
+                - {license_dir}: directory of license_file_path
 
-Supported keys / 支持字段:
-    - start_file_option: primary option before license file path / 许可证文件前的
-      主选项（例如 FlexNet 的 -c）
-    - log_option: optional log option token / 可选日志参数（例如 -l）
-    - log_file_template: optional log file template / 日志文件模板
-      placeholders / 占位符:
-        - {date}: current date in YYYY-MM-DD / 当前日期
-        - {license_dir}: directory of license_file_path / 许可证文件所在目录
-
-Design notes / 设计说明:
-    - Provider matching is case-insensitive / provider 名大小写不敏感
-    - Missing provider falls back to default profile / 未命中时回退 default
-    - Config is cached by lru_cache(maxsize=1) / 配置使用单实例缓存减少 I/O
+Design notes:
+        - Provider matching is case-insensitive
+        - Missing provider falls back to default profile
+        - Config is cached by lru_cache(maxsize=1)
 """
 
 from __future__ import annotations
@@ -40,7 +34,7 @@ from typing import cast
 
 @dataclass(slots=True, frozen=True)
 class ProviderCommandProfile:
-    """Resolved option profile for one provider / 单个 provider 的已解析配置。"""
+    """Resolved option profile for one provider."""
 
     start_file_option: str
     log_option: str = ""
@@ -49,7 +43,7 @@ class ProviderCommandProfile:
 
 @dataclass(slots=True, frozen=True)
 class ProviderCommandProfileConfig:
-    """In-memory profile map / 内存中的 default 与 providers 映射。"""
+    """In-memory profile map."""
 
     default: ProviderCommandProfile
     providers: dict[str, ProviderCommandProfile]
@@ -57,13 +51,9 @@ class ProviderCommandProfileConfig:
 
 @lru_cache(maxsize=1)
 def _load_profiles() -> ProviderCommandProfileConfig:
-    """Load and normalize profiles from JSON / 从 JSON 加载并归一化配置。
+    """Load and normalize profiles from JSON.
 
-    English:
     Returns a usable config object even when raw JSON is partially malformed.
-
-    Chinese:
-    即使 JSON 存在部分脏数据，也会尽量返回可用配置；非 dict 结构会被安全忽略。
     """
 
     config_path = Path(__file__).resolve().parents[1] / "config" / "provider_start_options.json"
@@ -107,13 +97,9 @@ def _load_profiles() -> ProviderCommandProfileConfig:
 
 
 def resolve_start_file_option(provider: str) -> str:
-    """Resolve primary start option / 解析主启动选项。
+    """Resolve primary start option.
 
-    English:
     Kept for call sites that only need the first option token.
-
-    Chinese:
-    该函数用于只需要主选项（如 -c）的调用场景。
     """
 
     config = _load_profiles()
@@ -129,15 +115,15 @@ def resolve_start_option_tokens(
     today: date | None = None,
     license_file_path: str = "",
 ) -> tuple[str, ...]:
-    """Resolve full option token tuple / 解析完整选项 token 元组。
+    """Resolve full option token tuple.
 
-    Output / 输出格式:
+    Output format:
         (start_file_option,) or
         (start_file_option, log_option, resolved_log_file)
 
-    Placeholder expansion / 占位符展开:
+    Placeholder expansion:
         {date} -> YYYY-MM-DD
-        {license_dir} -> directory of license_file_path / 许可证目录
+        {license_dir} -> directory of license_file_path
     """
 
     config = _load_profiles()
@@ -156,7 +142,7 @@ def resolve_start_option_tokens(
 
 
 def _to_str_object_dict(value: object) -> dict[str, object]:
-    """Normalize unknown object to dict[str, object] / 将未知对象归一化为字符串键字典。"""
+    """Normalize unknown object to dict[str, object]."""
 
     if not isinstance(value, dict):
         return {}

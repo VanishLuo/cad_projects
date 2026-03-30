@@ -6,10 +6,12 @@ from license_management.adapters.provider_adapter import (
     ProviderOperationResult,
     SshCommandExecutor,
 )
+from license_management.adapters.ssh_command_executor import OpenSshCommandExecutor
 
 __all__ = [
     "CommandAttemptLog",
     "FlexNetAdapter",
+    "OpenSshCommandExecutor",
     "ProviderOperationResult",
     "SshCommandExecutor",
 ]

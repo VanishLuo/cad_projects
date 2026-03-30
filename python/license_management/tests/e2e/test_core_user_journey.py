@@ -23,9 +23,11 @@ class HappyPathExecutor:
         *,
         host: str,
         username: str,
+        password: str | None = None,
         command: str,
         timeout_seconds: int,
     ) -> tuple[int, str, str]:
+        _ = password
         return 0, "ok", ""
 
 
@@ -116,6 +118,7 @@ def test_e2e_invalid_form_shows_recoverable_feedback() -> None:
             "record_id": "",
             "server_name": "",
             "provider": "",
+            "prot": "",
             "feature_name": "",
             "process_name": "",
             "expires_on": "bad-date",
@@ -131,6 +134,7 @@ def test_e2e_invalid_form_shows_recoverable_feedback() -> None:
             "record_id": "r-100",
             "server_name": "srv-a",
             "provider": "FlexNet",
+            "prot": "27000",
             "feature_name": "ANSYS-MECH",
             "process_name": "lmgrd",
             "expires_on": "2026-12-31",

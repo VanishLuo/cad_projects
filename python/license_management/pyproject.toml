@@ -8,6 +8,7 @@ dependencies = [
   "PyQt5==5.15.10",
   "PyQt5-Qt5==5.15.2",
   "openpyxl>=3.1.5",
+  "paramiko>=3.4.0",
 ]
 
 [project.scripts]
@@ -46,6 +47,10 @@ testpaths = ["tests"]
 [tool.coverage.run]
 omit = [
   "src/license_management/__main__.py",
-  "src/license_management/gui/qt_app.py",
+  "src/license_management/gui/bootstrap.py",
+  "src/license_management/gui/main_window.py",
+  "src/license_management/gui/dialogs/__init__.py",
+  "src/license_management/gui/dialogs/license_file_detail_dialog.py",
+  "src/license_management/gui/dialogs/record_dialog.py",
   "src/license_management/gui/qt_compat.py",
 ]

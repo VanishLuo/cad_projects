@@ -8,9 +8,11 @@ from license_management.domain.models.license_record import LicenseRecord
 
 
 class ExpirationStatus(StrEnum):
+    UNKNOWN = "unknown"
     ACTIVE = "active"
     EXPIRING_SOON = "expiring_soon"
     EXPIRED = "expired"
+    LICENSE_NOT_FOUND = "license_not_found"
 
 
 @dataclass(slots=True)

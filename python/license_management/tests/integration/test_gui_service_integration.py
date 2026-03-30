@@ -26,9 +26,11 @@ class StubSshExecutor:
         *,
         host: str,
         username: str,
+        password: str | None,
         command: str,
         timeout_seconds: int,
     ) -> tuple[int, str, str]:
+        _ = password
         if "lmdown" in command:
             if self._stop_exit_code == 0:
                 return 0, "stopped", ""

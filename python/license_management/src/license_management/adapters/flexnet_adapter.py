@@ -45,6 +45,7 @@ class FlexNetAdapter:
         lmgrd_path: str = "lmgrd",
         lmutil_path: str = "lmutil",
         license_file_path: str = "license.dat",
+        start_command_override: str | None = None,
         timeout_seconds: int = 30,
         retry_times: int = 1,
     ) -> None:
@@ -52,6 +53,7 @@ class FlexNetAdapter:
         self._lmgrd_path = lmgrd_path
         self._lmutil_path = lmutil_path
         self._license_file_path = license_file_path
+        self._start_command_override = (start_command_override or "").strip() or None
         self._timeout_seconds = timeout_seconds
         self._retry_times = retry_times
 
@@ -60,6 +62,7 @@ class FlexNetAdapter:
         *,
         host: str,
         username: str,
+        password: str | None = None,
         provider: str = "",
         executable_path: str | None = None,
         license_file_path: str | None = None,
@@ -92,12 +95,18 @@ class FlexNetAdapter:
                 license_file_path=license_file,
             )
 
-        # Final shape: <exe> <options...> <license_file_path>
-        # 最终格式：<可执行文件> <选项...> <license 文件路径>
-        effective_start_command = " ".join([executable, *option_tokens, license_file])
+        # Temporary override for bring-up environments where real lmgrd is unavailable.
+        # 临时环境下可覆盖为探测命令（例如 ls -l），后续可恢复真实启动命令。
+        if self._start_command_override is not None:
+            effective_start_command = self._start_command_override
+        else:
+            # Final shape: <exe> <options...> <license_file_path>
+            # 最终格式：<可执行文件> <选项...> <license 文件路径>
+            effective_start_command = " ".join([executable, *option_tokens, license_file])
         start_logs, start_succeeded = self._run_with_retry(
             host=host,
             username=username,
+            password=password,
             command=effective_start_command,
         )
 
@@ -105,7 +114,7 @@ class FlexNetAdapter:
         rollback_attempted = False
         rollback_succeeded: bool | None = None
 
-        if not start_succeeded:
+        if (not start_succeeded) and (self._start_command_override is None):
             # If start fails after all retries, force stop as rollback attempt.
             # 若启动在全部重试后仍失败，执行强制停止作为回滚。
             rollback_attempted = True
@@ -113,6 +122,7 @@ class FlexNetAdapter:
             rollback_logs, rollback_succeeded = self._run_once(
                 host=host,
                 username=username,
+                password=password,
                 command=rollback_command,
                 attempt=1,
             )
@@ -130,7 +140,9 @@ class FlexNetAdapter:
             rollback_succeeded=rollback_succeeded,
         )
 
-    def stop(self, *, host: str, username: str) -> ProviderOperationResult:
+    def stop(
+        self, *, host: str, username: str, password: str | None = None
+    ) -> ProviderOperationResult:
         """Stop license service directly using lmutil lmdown -force.
 
         Chinese:
@@ -141,6 +153,7 @@ class FlexNetAdapter:
         stop_logs, stop_succeeded = self._run_with_retry(
             host=host,
             username=username,
+            password=password,
             command=stop_command,
         )
 
@@ -160,6 +173,7 @@ class FlexNetAdapter:
         *,
         host: str,
         username: str,
+        password: str | None,
         command: str,
     ) -> tuple[tuple[CommandAttemptLog, ...], bool]:
         """Execute one command with retry and full attempt logs.
@@ -174,6 +188,7 @@ class FlexNetAdapter:
             attempt_logs, succeeded = self._run_once(
                 host=host,
                 username=username,
+                password=password,
                 command=command,
                 attempt=attempt,
             )
@@ -188,6 +203,7 @@ class FlexNetAdapter:
         *,
         host: str,
         username: str,
+        password: str | None,
         command: str,
         attempt: int,
     ) -> tuple[tuple[CommandAttemptLog, ...], bool]:
@@ -200,6 +216,7 @@ class FlexNetAdapter:
         exit_code, stdout, stderr = self._executor.run(
             host=host,
             username=username,
+            password=password,
             command=command,
             timeout_seconds=self._timeout_seconds,
         )
