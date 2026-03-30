@@ -85,3 +85,37 @@ def test_save_text_returns_permission_error() -> None:
 
     assert result.success is False
     assert result.error == "PermissionError: cannot write remote license file."
+
+
+def test_query_server_identity_returns_hostname_and_mac() -> None:
+    executor = StubSshExecutor((0, "lic-srv-01\n52:54:00:12:34:56\n", ""))
+    service = RemoteLicenseFileService(executor=executor)
+
+    result = service.query_server_identity(
+        host="srv-a",
+        username="ops",
+        password="pwd",
+    )
+
+    assert result.success is True
+    assert result.hostname == "lic-srv-01"
+    assert result.mac == "52:54:00:12:34:56"
+    assert result.error == ""
+    assert "hostname" in executor.last_command
+    assert "/sys/class/net" in executor.last_command
+
+
+def test_query_server_identity_returns_permission_error() -> None:
+    executor = StubSshExecutor((1, "", "Permission denied"))
+    service = RemoteLicenseFileService(executor=executor)
+
+    result = service.query_server_identity(
+        host="srv-a",
+        username="ops",
+        password=None,
+    )
+
+    assert result.success is False
+    assert result.hostname == ""
+    assert result.mac == ""
+    assert result.error == "PermissionError: cannot query remote server identity."

@@ -13,6 +13,7 @@ class ParserProfileConfig:
     feature_name_token_index: int
     quantity_regexes: tuple[str, ...]
     expiry_regexes: tuple[str, ...]
+    feature_keywords: tuple[str, ...] = ()
 
 
 @dataclass(slots=True, frozen=True)
@@ -39,9 +40,13 @@ def load_license_parser_config() -> LicenseParserConfig:
     profiles: dict[str, ParserProfileConfig] = {}
     for profile_name, profile_value in profiles_raw.items():
         profile_dict = _to_str_object_dict(profile_value)
+        feature_keyword = str(profile_dict.get("feature_keyword", "FEATURE")).strip() or "FEATURE"
+        feature_keywords = _to_str_tuple(profile_dict.get("feature_keywords"))
+        if not feature_keywords:
+            feature_keywords = (feature_keyword,)
         profiles[profile_name] = ParserProfileConfig(
-            feature_keyword=str(profile_dict.get("feature_keyword", "FEATURE")).strip()
-            or "FEATURE",
+            feature_keyword=feature_keyword,
+            feature_keywords=feature_keywords,
             feature_name_token_index=_to_non_negative_int(
                 profile_dict.get("feature_name_token_index"),
                 default=1,
@@ -53,6 +58,7 @@ def load_license_parser_config() -> LicenseParserConfig:
     if not profiles:
         profiles["default"] = ParserProfileConfig(
             feature_keyword="FEATURE",
+            feature_keywords=("FEATURE",),
             feature_name_token_index=1,
             quantity_regexes=(r"\\b(?:COUNT|QTY|QUANTITY)\\s*=\\s*(\\d+)\\b",),
             expiry_regexes=(r"\\b(\\d{4}-\\d{2}-\\d{2})\\b", r"\\b(\\d{4}/\\d{2}/\\d{2})\\b"),

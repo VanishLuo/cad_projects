@@ -39,6 +39,10 @@
     },
     "siemens_increment": {
       "feature_keyword": "INCREMENT",
+      "feature_keywords": [
+        "FEATURE",
+        "INCREMENT"
+      ],
       "feature_name_token_index": 1,
       "quantity_regexes": [
         "\\b(?:COUNT|QTY|QUANTITY)\\s*=\\s*(\\d+)\\b",
@@ -55,6 +59,11 @@
     {
       "provider": "FlexNet",
       "vendor": "siemens*",
+      "profile": "siemens_increment"
+    },
+    {
+      "provider": "FlexNet",
+      "vendor": "empyrean*",
       "profile": "siemens_increment"
     },
     {

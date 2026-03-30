@@ -7,13 +7,11 @@ from datetime import date
 from pathlib import Path
 from typing import Protocol
 
-from license_management.domain.models.license_record import LicenseRecord
 from license_management.infrastructure.config.license_parser_config import (
     ParserProfileConfig,
     ParserRouteConfig,
     load_license_parser_config,
 )
-from license_management.shared.path_normalization import normalize_local_path_text
 
 
 @dataclass(slots=True, frozen=True)
@@ -99,7 +97,10 @@ class ConfigurableFeatureParser:
     """Parses license files with profile-driven extraction rules."""
 
     def __init__(self, profile: ParserProfileConfig) -> None:
-        self._feature_keyword = profile.feature_keyword.upper()
+        keywords = profile.feature_keywords or (profile.feature_keyword,)
+        self._feature_keywords = {item.strip().upper() for item in keywords if item.strip()}
+        if not self._feature_keywords:
+            self._feature_keywords = {"FEATURE"}
         self._feature_name_token_index = max(0, profile.feature_name_token_index)
         self._quantity_regexes = [
             re.compile(item, re.IGNORECASE) for item in profile.quantity_regexes
@@ -124,7 +125,7 @@ class ConfigurableFeatureParser:
             tokens = [token for token in line.split() if token]
             if not tokens:
                 continue
-            if tokens[0].upper() != self._feature_keyword:
+            if tokens[0].upper() not in self._feature_keywords:
                 continue
 
             if len(tokens) <= self._feature_name_token_index:
@@ -145,8 +146,13 @@ class ConfigurableFeatureParser:
         return features
 
     def _extract_quantity(self, *, line: str, tokens: list[str]) -> int | None:
+        quantity_after_expiry = self._extract_quantity_after_expiry(tokens=tokens)
+        if quantity_after_expiry is not None:
+            return quantity_after_expiry
+
+        quantity_scope = self._quantity_scope_before_signature(line)
         for quantity_regex in self._quantity_regexes:
-            match = quantity_regex.search(line)
+            match = quantity_regex.search(quantity_scope)
             if match is None:
                 continue
             try:
@@ -154,10 +160,54 @@ class ConfigurableFeatureParser:
             except (TypeError, ValueError, IndexError):
                 continue
 
-        for token in reversed(tokens):
-            if token.isdigit():
-                return max(1, int(token))
         return None
+
+    def _extract_quantity_after_expiry(self, *, tokens: list[str]) -> int | None:
+        for index, token in enumerate(tokens):
+            normalized = token.strip().strip('"').strip("'").strip(",;")
+            if normalized == "":
+                continue
+
+            is_expiry_token = (
+                self._parse_cadence_date(normalized) is not None
+                or self._looks_like_iso_date(normalized)
+                or self._looks_like_slash_date(normalized)
+                or normalized.lower() in {"permanent", "perpetual"}
+            )
+            if not is_expiry_token:
+                continue
+
+            next_index = index + 1
+            if next_index >= len(tokens):
+                return None
+
+            candidate = tokens[next_index].strip().strip('"').strip("'").strip(",;")
+            if candidate.isdigit():
+                return max(1, int(candidate))
+            return None
+        return None
+
+    def _quantity_scope_before_signature(self, line: str) -> str:
+        match = re.search(r"\bSIGN\s*=", line, re.IGNORECASE)
+        if match is None:
+            return line
+        return line[: match.start()]
+
+    def _looks_like_iso_date(self, value: str) -> bool:
+        try:
+            date.fromisoformat(value)
+            return True
+        except ValueError:
+            return False
+
+    def _looks_like_slash_date(self, value: str) -> bool:
+        if "/" not in value:
+            return False
+        try:
+            date.fromisoformat(value.replace("/", "-"))
+            return True
+        except ValueError:
+            return False
 
     def _extract_expiry(self, *, line: str) -> date | None:
         for expiry_regex in self._expiry_regexes:
@@ -268,70 +318,3 @@ class LicenseFeatureParser:
     def parse_text(self, content: str) -> list[ParsedLicenseFeature]:
         parser = self._resolver.resolve(provider="", vendor="")
         return parser.parse_text(content)
-
-
-class LicenseRecordExpander:
-    """Expands a base record into feature-level records based on its license file path."""
-
-    def __init__(
-        self,
-        parser: ParsedFeatureParser | None = None,
-        resolver: LicenseParserResolver | None = None,
-    ) -> None:
-        self._parser = parser
-        self._resolver = resolver or LicenseParserResolver()
-
-    def expand_from_record(self, record: LicenseRecord) -> list[LicenseRecord]:
-        path = normalize_local_path_text(record.license_file_path)
-        if path == "":
-            return [record]
-
-        selected_parser = self._parser
-        if selected_parser is None:
-            selected_parser = self._resolver.resolve(provider=record.provider, vendor=record.vendor)
-
-        parsed_features = selected_parser.parse(Path(path))
-        if not parsed_features:
-            return [record]
-
-        expanded: list[LicenseRecord] = []
-        for feature_index, parsed in enumerate(parsed_features, start=1):
-            for quantity_index in range(parsed.quantity):
-                suffix = (
-                    f"#{feature_index}"
-                    if parsed.quantity == 1
-                    else f"#{feature_index}-{quantity_index + 1}"
-                )
-                expanded.append(
-                    LicenseRecord(
-                        record_id=f"{record.record_id}{suffix}",
-                        server_name=record.server_name,
-                        provider=record.provider,
-                        prot=record.prot,
-                        feature_name=parsed.feature_name,
-                        process_name=record.process_name,
-                        expires_on=parsed.expires_on,
-                        vendor=record.vendor,
-                        start_executable_path=record.start_executable_path,
-                        license_file_path=record.license_file_path,
-                        start_option_override=record.start_option_override,
-                    )
-                )
-
-        if len(expanded) == 1:
-            only = expanded[0]
-            expanded[0] = LicenseRecord(
-                record_id=record.record_id,
-                server_name=only.server_name,
-                provider=only.provider,
-                prot=only.prot,
-                feature_name=only.feature_name,
-                process_name=only.process_name,
-                expires_on=only.expires_on,
-                vendor=only.vendor,
-                start_executable_path=only.start_executable_path,
-                license_file_path=only.license_file_path,
-                start_option_override=only.start_option_override,
-            )
-
-        return expanded

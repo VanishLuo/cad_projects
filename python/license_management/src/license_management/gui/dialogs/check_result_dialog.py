@@ -4,6 +4,7 @@ from license_management.application.record_check_service import RecordCheckIssue
 from license_management.gui.qt_compat import (
     QDialog,
     QGroupBox,
+    QHBoxLayout,
     QLabel,
     QPushButton,
     QTextEdit,
@@ -24,7 +25,7 @@ class CheckResultDialog(QDialog):
     ) -> None:
         super().__init__(parent)
         self.setObjectName("CheckResultDialog")
-        self.setWindowTitle("Check result")
+        self.setWindowTitle("Check Result")
         self.resize(900, 620)
 
         total = sum(len(items) for items in grouped.values())
@@ -40,6 +41,8 @@ class CheckResultDialog(QDialog):
         summary.setWordWrap(True)
 
         root = QVBoxLayout()
+        root.setContentsMargins(12, 12, 12, 12)
+        root.setSpacing(8)
         root.addWidget(summary)
 
         root.addWidget(self._build_section("License", grouped.get("license", [])))
@@ -48,8 +51,13 @@ class CheckResultDialog(QDialog):
         root.addWidget(self._build_section("Other", grouped.get("other", [])))
 
         close_btn = QPushButton("Close")
+        close_btn.setObjectName("DialogCloseButton")
         close_btn.clicked.connect(self.accept)
-        root.addWidget(close_btn)
+
+        footer = QHBoxLayout()
+        footer.addStretch(1)
+        footer.addWidget(close_btn)
+        root.addLayout(footer)
         self.setLayout(root)
 
     def _build_section(self, title: str, items: list[RecordCheckIssue]) -> QGroupBox:

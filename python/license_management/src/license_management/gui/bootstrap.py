@@ -11,12 +11,12 @@ from license_management.application.import_pipeline import ImportPipelineService
 from license_management.application.license_feature_catalog import LicenseFeatureCatalogService
 from license_management.application.remote_license_file_service import RemoteLicenseFileService
 from license_management.application.record_check_service import RecordCheckService
-from license_management.gui.dialog_flows import DialogFlowBinder
+from license_management.gui.flows.dialog_flows import DialogFlowBinder
 from license_management.gui.feature_search import FeatureSearchController
-from license_management.gui.main_window import MainWindow
-from license_management.gui.models import FeedbackCenter
-from license_management.gui.qt_compat import QApplication, app_exec
-from license_management.gui.view_model import MainListViewModel
+from license_management.gui.main_window import MainWindow, UiLicenseRepositoryProtocol
+from license_management.gui.state.models import FeedbackCenter
+from license_management.gui.qt_compat import QApplication, QFont, QFontDatabase, app_exec
+from license_management.gui.state.view_model import MainListViewModel
 from license_management.infrastructure.config.ssh_credentials_config import (
     SshCredentials,
     load_ssh_credentials,
@@ -31,7 +31,7 @@ from license_management.infrastructure.repositories.sqlite_license_repository im
 
 @dataclass(slots=True)
 class UiContext:
-    repository: SqliteLicenseRepository
+    repository: UiLicenseRepositoryProtocol
     feature_catalog: LicenseFeatureCatalogService
     checker: RecordCheckService
     ssh_executor: SshCommandExecutor
@@ -97,10 +97,36 @@ def run_gui() -> int:
     app = QApplication.instance()
     if app is None or not isinstance(app, QApplication):
         app = QApplication([])
+    _apply_preferred_font(app)
     _apply_stylesheet(app)
     window = MainWindow(build_context())
     window.show()
     return app_exec(app)
+
+
+def _apply_preferred_font(app: QApplication) -> None:
+    preferred_families = [
+        "SF Pro Text",
+        "PingFang SC",
+        "PingFang HK",
+        "Helvetica Neue",
+        "San Francisco",
+        "Segoe UI Variable",
+        "Microsoft YaHei UI",
+    ]
+    available_families = {name.lower(): name for name in QFontDatabase().families()}
+
+    selected_family: str | None = None
+    for family in preferred_families:
+        if family.lower() in available_families:
+            selected_family = available_families[family.lower()]
+            break
+
+    if selected_family is None:
+        return
+
+    font = QFont(selected_family)
+    app.setFont(font)
 
 
 def _apply_stylesheet(app: QApplication) -> None:

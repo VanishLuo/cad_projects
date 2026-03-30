@@ -3,8 +3,8 @@ QDialog,
 QMessageBox {
     background: #f3f3f3;
     color: #1e1e1e;
-    font-family: "Segoe UI", "PingFang SC", sans-serif;
-    font-size: 12px;
+    font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", "Microsoft YaHei UI", sans-serif;
+    font-size: 10px;
 }
 
 QGroupBox {
@@ -153,4 +153,34 @@ QDialog#RecordDialog QPushButton#DialogOkButton:hover,
 QDialog#RecordDialog QPushButton#DialogOkButton:pressed,
 QDialog#RecordDialog QPushButton#DialogOkButton:disabled {
     border: 1px solid transparent;
+}
+
+/* Ensure all key sub dialogs use consistent visual language. */
+QDialog#RemoteLicenseEditorDialog,
+QDialog#TextDiffDialog,
+QDialog#CheckResultDialog,
+QDialog#LicenseFileDetailDialog {
+    background: #f3f3f3;
+    color: #1e1e1e;
+}
+
+QDialog#RemoteLicenseEditorDialog QLabel,
+QDialog#TextDiffDialog QLabel,
+QDialog#CheckResultDialog QLabel,
+QDialog#LicenseFileDetailDialog QLabel {
+    color: #3c3c3c;
+}
+
+QDialog#RemoteLicenseEditorDialog QTextEdit,
+QDialog#TextDiffDialog QTextEdit,
+QDialog#CheckResultDialog QTextEdit,
+QDialog#LicenseFileDetailDialog QTableWidget {
+    border: 1px solid #d4d4d4;
+    background: #ffffff;
+}
+
+QDialog QPushButton#DialogCloseButton {
+    min-width: 92px;
+    min-height: 24px;
+    padding: 2px 12px;
 }

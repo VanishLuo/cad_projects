@@ -4,6 +4,7 @@ from typing import Any
 
 from license_management.gui.qt_compat import (
     QDialog,
+    QHBoxLayout,
     QHeaderView,
     QLabel,
     QPushButton,
@@ -61,10 +62,17 @@ class LicenseFileDetailDialog(QDialog):
             table.setItem(row_index, 2, QTableWidgetItem(str(count)))
 
         close_button = QPushButton("Close")
+        close_button.setObjectName("DialogCloseButton")
         close_button.clicked.connect(self.accept)
 
         layout = QVBoxLayout()
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(8)
         layout.addWidget(summary)
         layout.addWidget(table)
-        layout.addWidget(close_button)
+
+        footer = QHBoxLayout()
+        footer.addStretch(1)
+        footer.addWidget(close_button)
+        layout.addLayout(footer)
         self.setLayout(layout)

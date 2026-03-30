@@ -1,8 +1,8 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import date
 from license_management.domain.models.license_record import LicenseRecord
-from license_management.gui.view_model import MainListViewModel, SearchFilters
+from license_management.gui.state.view_model import MainListViewModel, SearchFilters
 
 
 def _record(

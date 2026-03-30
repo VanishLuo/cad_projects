@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
@@ -7,10 +7,10 @@ from license_management.adapters.flexnet_adapter import FlexNetAdapter
 from license_management.application.compare_service import CrossTargetCompareService
 from license_management.application.import_pipeline import ImportPipelineService
 from license_management.domain.models.license_record import LicenseRecord
-from license_management.gui.dialog_flows import DialogFlowBinder
+from license_management.gui.flows.dialog_flows import DialogFlowBinder
 from license_management.gui.feature_search import FeatureSearchController
-from license_management.gui.models import FeedbackCenter
-from license_management.gui.view_model import MainListViewModel
+from license_management.gui.state.models import FeedbackCenter
+from license_management.gui.state.view_model import MainListViewModel
 from license_management.infrastructure.repositories.in_memory_license_repository import (
     InMemoryLicenseRepository,
 )

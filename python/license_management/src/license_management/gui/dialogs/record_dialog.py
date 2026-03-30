@@ -34,7 +34,9 @@ class RecordDialog(QDialog):
         self.resize(760, 420)
 
         cfg = load_table_header_config()
-        self._required_fields = set(cfg.sqlite_required_fields)
+        self._required_fields = {
+            field for field in cfg.sqlite_required_fields if field != "record_id"
+        }
         self._fields: dict[str, QLineEdit] = {}
 
         form = QFormLayout()
@@ -43,7 +45,13 @@ class RecordDialog(QDialog):
             | _qt_enum_member(Qt, "AlignmentFlag", "AlignVCenter")
         )
 
+        record_id_hint = QLineEdit("(auto-generated in staging)")
+        record_id_hint.setReadOnly(True)
+        form.addRow("Record ID", record_id_hint)
+
         for field in cfg.sqlite_columns.keys():
+            if field == "record_id":
+                continue
             editor = QLineEdit("")
             self._fields[field] = editor
             label_text = cfg.gui_headers.get(field, field)

@@ -6,12 +6,14 @@ __all__ = [
     "InMemoryLicenseRepository",
     "SqliteLicenseFeatureRepository",
     "SqliteLicenseRepository",
+    "SqliteLicenseTextSnapshotRepository",
 ]
 
 _EXPORTS = {
     "InMemoryLicenseRepository": ".in_memory_license_repository",
     "SqliteLicenseFeatureRepository": ".sqlite_license_feature_repository",
     "SqliteLicenseRepository": ".sqlite_license_repository",
+    "SqliteLicenseTextSnapshotRepository": ".sqlite_license_text_snapshot_repository",
 }
 
 

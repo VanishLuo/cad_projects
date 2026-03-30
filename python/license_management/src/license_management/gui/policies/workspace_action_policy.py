@@ -15,7 +15,7 @@ def build_workspace_action_policy(workspace: str) -> WorkspaceActionPolicy:
         "add",
         "import",
         "check",
-        "reset_data",
+        "switch_workspace",
         "delete",
         "export",
         "compare",
@@ -26,18 +26,18 @@ def build_workspace_action_policy(workspace: str) -> WorkspaceActionPolicy:
 
     enabled = {key: True for key in action_keys}
     tooltips = {key: "" for key in action_keys}
-    tooltips["reset_data"] = "Switch between staging and committed workspaces"
+    tooltips["switch_workspace"] = "Switch between staging and committed workspaces"
 
     if workspace == "staging":
-        allowed = {"add", "import", "check", "reset_data"}
+        allowed = {"add", "import", "check", "switch_workspace", "delete"}
         for key in action_keys:
             enabled[key] = key in allowed
         tooltips["export"] = "Run Check and publish to committed before export/compare"
-        tooltips["compare"] = "Run Check and publish to committed before export/compare"
+        tooltips["compare"] = "Compare is only available in committed workspace"
         tooltips["edit"] = "Run Check and publish to committed before remote edit/start/stop"
         tooltips["start"] = "Run Check and publish to committed before remote edit/start/stop"
         tooltips["stop"] = "Run Check and publish to committed before remote edit/start/stop"
-        tooltips["delete"] = "Staging only allows Add/Import/Check; delete in committed"
+        tooltips["delete"] = "Delete selected staging rows"
         return WorkspaceActionPolicy(
             action_enabled=enabled,
             action_tooltips=tooltips,
@@ -48,6 +48,10 @@ def build_workspace_action_policy(workspace: str) -> WorkspaceActionPolicy:
     enabled["import"] = False
     tooltips["add"] = "Committed workspace does not allow Add/Import; switch to staging"
     tooltips["import"] = "Committed workspace does not allow Add/Import; switch to staging"
+    tooltips["compare"] = (
+        "Select one row for initial-vs-current text compare, or two rows for current-text compare"
+    )
+    tooltips["delete"] = "Delete selected committed rows"
     return WorkspaceActionPolicy(
         action_enabled=enabled,
         action_tooltips=tooltips,

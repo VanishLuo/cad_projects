@@ -12,12 +12,14 @@
 ## 证据快照
 - Full test suite executed on Python 3.12.13.
 - 已在 Python 3.12.13 上执行全量测试。
-- Result: 60 passed.
-- 结果：60 个测试通过。
-- Coverage gate: 96.68% (threshold: 70%).
-- 覆盖率门槛：96.68%（阈值 70%）。
+- Result: 105 passed.
+- 结果：105 个测试通过。
+- Coverage gate: 73.88% (threshold: 70%).
+- 覆盖率门槛：73.88%（阈值 70%）。
 - Lint/format/type checks passed (ruff/black/mypy).
 - 静态检查通过（ruff/black/mypy）。
+- Snapshot date: 2026-03-30.
+- 快照日期：2026-03-30。
 
 ## Task Closure Status
 ## 任务收敛状态

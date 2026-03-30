@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from datetime import date
 from typing import Any
@@ -7,7 +7,7 @@ import pytest
 
 from license_management.domain.models.license_record import LicenseRecord
 from license_management.gui.feature_search import FeatureSearchController
-from license_management.gui.view_model import MainListViewModel
+from license_management.gui.state.view_model import MainListViewModel
 
 
 def _record(

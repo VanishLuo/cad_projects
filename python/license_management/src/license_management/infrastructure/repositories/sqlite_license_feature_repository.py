@@ -122,6 +122,7 @@ class SqliteLicenseFeatureRepository:
                 conn.execute(f"""
                     CREATE TABLE IF NOT EXISTS {table_name} (
                         feature_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        record_id TEXT NOT NULL DEFAULT '',
                         server_name TEXT NOT NULL,
                         provider TEXT NOT NULL,
                         vendor TEXT NOT NULL,
@@ -132,6 +133,15 @@ class SqliteLicenseFeatureRepository:
                         updated_at TEXT NOT NULL
                     )
                     """)
+
+                existing_cols = {
+                    str(row[1])
+                    for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+                }
+                if "record_id" not in existing_cols:
+                    conn.execute(
+                        f"ALTER TABLE {table_name} ADD COLUMN record_id TEXT NOT NULL DEFAULT ''"
+                    )
             conn.commit()
 
     def replace_for_record(
@@ -148,6 +158,7 @@ class SqliteLicenseFeatureRepository:
             conn.executemany(
                 f"""
                 INSERT INTO {table_name} (
+                    record_id,
                     server_name,
                     provider,
                     vendor,
@@ -156,10 +167,11 @@ class SqliteLicenseFeatureRepository:
                     expires_on,
                     quantity,
                     updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [
                     (
+                        record.record_id,
                         record.server_name,
                         record.provider,
                         record.vendor,
@@ -181,12 +193,17 @@ class SqliteLicenseFeatureRepository:
             conn.execute(
                 f"""
                 DELETE FROM {table_name}
-                WHERE server_name = ?
-                  AND provider = ?
-                  AND vendor = ?
-                  AND license_file_path = ?
+                WHERE record_id = ?
+                   OR (
+                       record_id = ''
+                   AND server_name = ?
+                   AND provider = ?
+                   AND vendor = ?
+                   AND license_file_path = ?
+                   )
                 """,
                 (
+                    record.record_id,
                     record.server_name,
                     record.provider,
                     record.vendor,
@@ -203,13 +220,18 @@ class SqliteLicenseFeatureRepository:
                 f"""
                 SELECT feature_name, expires_on, quantity
                 FROM {table_name}
-                WHERE server_name = ?
-                  AND provider = ?
-                  AND vendor = ?
-                  AND license_file_path = ?
+                WHERE record_id = ?
+                   OR (
+                       record_id = ''
+                   AND server_name = ?
+                   AND provider = ?
+                   AND vendor = ?
+                   AND license_file_path = ?
+                   )
                 ORDER BY expires_on, feature_name
                 """,
                 (
+                    record.record_id,
                     record.server_name,
                     record.provider,
                     record.vendor,

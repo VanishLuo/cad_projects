@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import date
 from license_management.domain.expiration_engine import ExpirationStateEngine, ExpirationStatus
 from license_management.domain.models.license_record import LicenseRecord
-from license_management.gui.models import UiLicenseRow
+from license_management.gui.state.models import UiLicenseRow
 from license_management.infrastructure.config.table_header_config import load_table_header_config
 
 
@@ -42,13 +42,6 @@ class MainListViewModel:
 
     def set_runtime_statuses(self, statuses: dict[str, str]) -> None:
         self._runtime_status_by_record_id = dict(statuses)
-
-    def clear_runtime_statuses(self, record_ids: list[str] | None = None) -> None:
-        if record_ids is None:
-            self._runtime_status_by_record_id.clear()
-            return
-        for record_id in record_ids:
-            self._runtime_status_by_record_id.pop(record_id, None)
 
     def search_and_filter(
         self,

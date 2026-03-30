@@ -96,19 +96,6 @@ def _load_profiles() -> ProviderCommandProfileConfig:
     return ProviderCommandProfileConfig(default=default_profile, providers=providers)
 
 
-def resolve_start_file_option(provider: str) -> str:
-    """Resolve primary start option.
-
-    Kept for call sites that only need the first option token.
-    """
-
-    config = _load_profiles()
-    profile = config.providers.get(provider.strip().lower())
-    if profile is None:
-        return config.default.start_file_option
-    return profile.start_file_option
-
-
 def resolve_start_option_tokens(
     provider: str,
     *,

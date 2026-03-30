@@ -17,7 +17,7 @@ from license_management.application.import_pipeline import ImportPipelineService
 from license_management.application.license_feature_catalog import LicenseFeatureCatalogService
 from license_management.domain.models.license_record import LicenseRecord
 from license_management.domain.ports.license_repository import LicenseRepository
-from license_management.gui.models import FeedbackCenter, FeedbackMessage
+from license_management.gui.state.models import FeedbackCenter, FeedbackMessage
 from license_management.gui.validation_feedback import to_license_record, validate_license_form
 from license_management.infrastructure.config.table_header_config import load_table_header_config
 

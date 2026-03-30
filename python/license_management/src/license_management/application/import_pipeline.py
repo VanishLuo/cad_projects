@@ -24,19 +24,6 @@ class ImportReport:
     errors: list[str]
     warnings: list[str]
 
-    def to_summary_dict(self) -> dict[str, object]:
-        return {
-            "total": self.total,
-            "succeeded": self.succeeded,
-            "failed": self.failed,
-            "deduplicated": self.deduplicated,
-            "invalid": self.invalid,
-            "error_count": len(self.errors),
-            "warning_count": len(self.warnings),
-            "errors": list(self.errors),
-            "warnings": list(self.warnings),
-        }
-
 
 class ImportPipelineService:
     """Implements T5.1/T5.2 import pipelines with validation and deduplication."""

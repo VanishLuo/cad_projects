@@ -6,6 +6,9 @@ from pathlib import Path
 
 from license_management.domain.models.license_record import LicenseRecord
 from license_management.infrastructure.config.table_header_config import load_table_header_config
+from license_management.infrastructure.repositories.sqlite_license_text_snapshot_repository import (
+    SqliteLicenseTextSnapshotRepository,
+)
 
 
 class SqliteLicenseRepository:
@@ -19,6 +22,12 @@ class SqliteLicenseRepository:
         self._staging_table = f"{self._committed_table}_staging"
         self._cols = self._cfg.sqlite_columns
         self._id_col = self._cols["record_id"]
+        self._text_snapshot_table = f"{self._committed_table}_text_snapshot"
+        self._text_snapshot_repository = SqliteLicenseTextSnapshotRepository(
+            self._db_path,
+            table_name=self._text_snapshot_table,
+            id_column=self._id_col,
+        )
         self._ensure_schema()
         self._current_workspace = self._detect_initial_workspace()
 
@@ -89,6 +98,8 @@ class SqliteLicenseRepository:
         with sqlite3.connect(self._db_path) as conn:
             conn.execute(committed_sql)
             conn.execute(staging_sql)
+            conn.execute(f"DROP TABLE IF EXISTS {self._committed_table}_initial")
+            self._text_snapshot_repository.ensure_schema(conn)
             for table_name in (self._committed_table, self._staging_table):
                 existing_cols = {
                     str(row[1])
@@ -100,6 +111,7 @@ class SqliteLicenseRepository:
                     conn.execute(
                         f"ALTER TABLE {table_name} ADD COLUMN {column} TEXT NOT NULL DEFAULT ''"
                     )
+            self._sync_text_snapshot_rows(conn)
             conn.commit()
 
     def upsert(self, record: LicenseRecord) -> None:
@@ -160,8 +172,32 @@ class SqliteLicenseRepository:
                 f"DELETE FROM {table_name} WHERE {self._id_col} = ?",
                 (record_id,),
             )
+            if table_name == self._committed_table:
+                self._text_snapshot_repository.delete(record_id, conn=conn)
             conn.commit()
             return cursor.rowcount > 0
+
+    def upsert_license_text_snapshot(
+        self,
+        record_id: str,
+        *,
+        initial_text: str | None = None,
+        current_text: str | None = None,
+    ) -> None:
+        self._text_snapshot_repository.upsert(
+            record_id,
+            initial_text=initial_text,
+            current_text=current_text,
+        )
+
+    def get_license_text_snapshot(self, record_id: str) -> tuple[str, str] | None:
+        return self._text_snapshot_repository.get(record_id)
+
+    def _sync_text_snapshot_rows(self, conn: sqlite3.Connection) -> None:
+        self._text_snapshot_repository.sync_rows_with_committed(
+            conn,
+            committed_table=self._committed_table,
+        )
 
     def _to_record(self, row: tuple[object, ...], fields: tuple[str, ...]) -> LicenseRecord:
         values_by_field = {field: str(value) for field, value in zip(fields, row)}

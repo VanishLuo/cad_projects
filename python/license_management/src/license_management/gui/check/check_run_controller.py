@@ -54,6 +54,7 @@ class CheckRunController:
         worker.finished.connect(self._handle_finished)
         worker.finished.connect(thread.quit)
         worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(self._handle_thread_finished)
         thread.finished.connect(thread.deleteLater)
 
         self._thread = thread
@@ -66,9 +67,28 @@ class CheckRunController:
         self, scanned: int, issues_raw: object, runtime_statuses_raw: object
     ) -> None:
         self._set_in_progress(False)
-        self._thread = None
         self._worker = None
         self._on_finished(scanned, issues_raw, runtime_statuses_raw)
+
+    def _handle_thread_finished(self) -> None:
+        self._thread = None
+
+    def shutdown(self, *, wait_ms: int = 3000) -> None:
+        thread = self._thread
+        if thread is None:
+            return
+        if not thread.isRunning():
+            self._thread = None
+            return
+
+        thread.quit()
+        finished = thread.wait(wait_ms)
+        if not finished:
+            thread.terminate()
+            thread.wait(500)
+        self._thread = None
+        self._worker = None
+        self._set_in_progress(False)
 
     def _set_in_progress(self, value: bool) -> None:
         self._in_progress = value
