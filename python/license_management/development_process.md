@@ -95,8 +95,8 @@ Use the following template in each stage:
 - 需求基线v1.0。
 
 ### Tasks / 执行任务
-- [T2.1] Select stack: Python 3.11+, PyQt5/PySide6, SQLite, pandas/openpyxl, PyInstaller.
-- [T2.1] 选型：Python 3.11+、PyQt5/PySide6、SQLite、pandas/openpyxl、PyInstaller。
+- [T2.1] Select stack: Python 3.12, PyQt5/PySide6, SQLite, openpyxl, paramiko, PyInstaller.
+- [T2.1] 选型：Python 3.12、PyQt5/PySide6、SQLite、openpyxl、paramiko、PyInstaller。
 - [T2.2] Define layered architecture: UI layer, application service layer, provider adapter layer, repository layer.
 - [T2.2] 定义分层架构：UI层、应用服务层、服务商适配层、仓储层。
 - [T2.3] Define data model and migration strategy.
