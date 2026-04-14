@@ -11,8 +11,6 @@ Chinese：
 from __future__ import annotations
 
 import pytest
-from dataclasses import dataclass
-from typing import Protocol, cast
 
 from license_management.adapters.provider_adapter import (
     ProviderOperationResult,
@@ -259,8 +257,8 @@ class TestContractIsolation:
 
         # The business logic should work with any adapter that follows the protocol
         # This test demonstrates that we can swap implementations
-        assert hasattr(adapter, 'start_license')
-        assert hasattr(adapter, 'stop_license')
+        assert hasattr(adapter, "start_license")
+        assert hasattr(adapter, "stop_license")
         assert callable(adapter.start_license)
         assert callable(adapter.stop_license)
 
@@ -279,6 +277,7 @@ class TestErrorHandlingContract:
 
     def test_adapter_converts_ssh_errors_to_application_errors(self) -> None:
         """Test that adapter converts SSH errors to appropriate application errors."""
+
         # Create an executor that raises an exception
         class FailingExecutor(SshCommandExecutor):
             def run(self, **kwargs) -> tuple[int, str, str]:

@@ -11,11 +11,10 @@ Chinese:
 from __future__ import annotations
 
 import logging
-import json
 from typing import Any, Dict
 from datetime import datetime
 
-from .error_codes import ErrorCode, LicenseManagementError
+from .error_codes import LicenseManagementError
 
 
 class ErrorTrackingHandler(logging.Handler):
@@ -32,7 +31,7 @@ class ErrorTrackingHandler(logging.Handler):
             message = self.format(record)
 
             # Track error codes
-            if hasattr(record, 'error_code') and record.error_code:
+            if hasattr(record, "error_code") and record.error_code:
                 error_code = str(record.error_code)
                 self.error_counts[error_code] = self.error_counts.get(error_code, 0) + 1
 
@@ -45,7 +44,7 @@ class ErrorTrackingHandler(logging.Handler):
             "total_errors": sum(self.error_counts.values()),
             "unique_error_codes": len(self.error_counts),
             "error_counts": self.error_counts,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
 
@@ -64,8 +63,8 @@ def setup_error_logging(level: str = "INFO") -> tuple[logging.Logger, ErrorTrack
 
     # Set formatter
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(error_code)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        "%(asctime)s - %(name)s - %(levelname)s - %(error_code)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
     handler.setFormatter(formatter)
 
@@ -79,7 +78,7 @@ def setup_error_logging(level: str = "INFO") -> tuple[logging.Logger, ErrorTrack
 def log_exception_with_code(
     logger: logging.Logger,
     error: LicenseManagementError,
-    extra_context: Dict[str, Any] | None = None
+    extra_context: Dict[str, Any] | None = None,
 ) -> None:
     """Log an exception with its error code.
 
@@ -94,7 +93,7 @@ def log_exception_with_code(
         "context": error.context,
         "category": error.error_code.name,
         "severity": error.error_code.value[5],  # Extract severity digit
-        "recoverable": error.error_code.value[5] in ['1', '2']
+        "recoverable": error.error_code.value[5] in ["1", "2"],
     }
 
     if extra_context:
@@ -102,10 +101,10 @@ def log_exception_with_code(
 
     # Map error codes to log levels
     log_levels = {
-        '1': logging.INFO,      # Info
-        '2': logging.WARNING,   # Warning
-        '3': logging.ERROR,     # Error
-        '4': logging.CRITICAL,  # Critical
+        "1": logging.INFO,  # Info
+        "2": logging.WARNING,  # Warning
+        "3": logging.ERROR,  # Error
+        "4": logging.CRITICAL,  # Critical
     }
 
     severity = error.error_code.value[5]
@@ -114,17 +113,12 @@ def log_exception_with_code(
     logger.log(
         log_level,
         f"Error occurred: {error.message}",
-        extra={
-            "error_code": error.error_code.value,
-            "error_data": log_data
-        }
+        extra={"error_code": error.error_code.value, "error_data": log_data},
     )
 
 
 def create_error_context(
-    operation: str,
-    details: Dict[str, Any] | None = None,
-    user_action: str | None = None
+    operation: str, details: Dict[str, Any] | None = None, user_action: str | None = None
 ) -> Dict[str, Any]:
     """Create standardized error context.
 
@@ -139,7 +133,7 @@ def create_error_context(
     context = {
         "operation": operation,
         "timestamp": datetime.now().isoformat(),
-        "user_action": user_action
+        "user_action": user_action,
     }
 
     if details:

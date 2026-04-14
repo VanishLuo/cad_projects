@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 
 from license_management.shared.errors import (
     ErrorCode,
@@ -53,10 +52,7 @@ class TestLicenseManagementError:
 
     def test_error_creation_with_minimal_fields(self) -> None:
         """Test creating error with minimal required fields."""
-        error = LicenseManagementError(
-            error_code=ErrorCode.E011001,
-            message="Test error message"
-        )
+        error = LicenseManagementError(error_code=ErrorCode.E011001, message="Test error message")
 
         assert error.error_code == ErrorCode.E011001
         assert error.message == "Test error message"
@@ -66,19 +62,14 @@ class TestLicenseManagementError:
         """Test creating error with additional context."""
         context = {"field": "test_field", "value": "test_value"}
         error = LicenseManagementError(
-            error_code=ErrorCode.E011001,
-            message="Test error with context",
-            context=context
+            error_code=ErrorCode.E011001, message="Test error with context", context=context
         )
 
         assert error.context == context
 
     def test_error_string_representation(self) -> None:
         """Test error string representation."""
-        error = LicenseManagementError(
-            error_code=ErrorCode.E011001,
-            message="Test error"
-        )
+        error = LicenseManagementError(error_code=ErrorCode.E011001, message="Test error")
 
         error_str = str(error)
         assert "E011001" in error_str
@@ -87,9 +78,7 @@ class TestLicenseManagementError:
     def test_error_string_with_context(self) -> None:
         """Test error string representation with context."""
         error = LicenseManagementError(
-            error_code=ErrorCode.E011001,
-            message="Test error",
-            context={"field": "test"}
+            error_code=ErrorCode.E011001, message="Test error", context={"field": "test"}
         )
 
         error_str = str(error)
@@ -102,9 +91,7 @@ class TestSpecificErrors:
     def test_validation_error_creation(self) -> None:
         """Test ValidationError creation."""
         error = ValidationError(
-            message="Field validation failed",
-            field="email",
-            value="invalid_email"
+            message="Field validation failed", field="email", value="invalid_email"
         )
 
         assert error.error_code == ErrorCode.E011001
@@ -122,10 +109,7 @@ class TestSpecificErrors:
 
     def test_import_error_creation(self) -> None:
         """Test ImportError creation."""
-        error = ImportError(
-            file_path="/path/to/file.json",
-            reason="Invalid JSON format"
-        )
+        error = ImportError(file_path="/path/to/file.json", reason="Invalid JSON format")
 
         assert error.error_code == ErrorCode.E021001
         assert "Invalid JSON format" in error.message
@@ -133,10 +117,7 @@ class TestSpecificErrors:
 
     def test_ssh_connection_error_creation(self) -> None:
         """Test SSHConnectionError creation."""
-        error = SSHConnectionError(
-            host="example.com",
-            reason="Connection timeout"
-        )
+        error = SSHConnectionError(host="example.com", reason="Connection timeout")
 
         assert error.error_code == ErrorCode.E041001
         assert "example.com" in error.message
@@ -146,10 +127,7 @@ class TestSpecificErrors:
     def test_provider_command_error_creation(self) -> None:
         """Test ProviderCommandError creation."""
         error = ProviderCommandError(
-            provider="FlexNet",
-            command="lmstat -a",
-            exit_code=1,
-            stderr="Command failed"
+            provider="FlexNet", command="lmstat -a", exit_code=1, stderr="Command failed"
         )
 
         assert error.error_code == ErrorCode.E041002
@@ -194,6 +172,7 @@ class TestErrorClassification:
 
     def test_get_error_category_unknown(self) -> None:
         """Test unknown error code classification."""
+
         # Create a fake error code for testing
         class FakeCode:
             value = "X000000"
@@ -245,8 +224,9 @@ class TestErrorHierarchicalStructure:
             name = error_code.value
             assert len(name) > 0, f"Error code {error_code.name} has empty name"
             assert name.isupper(), f"Error code name {name} should be uppercase"
-            assert "_" in name or name.replace("_", "").isalnum(), \
-                f"Error code name {name} should contain only alphanumeric and underscores"
+            assert (
+                "_" in name or name.replace("_", "").isalnum()
+            ), f"Error code name {name} should contain only alphanumeric and underscores"
 
     def test_module_coverage(self) -> None:
         """Test that all expected modules have error codes."""
@@ -257,5 +237,6 @@ class TestErrorHierarchicalStructure:
 
         # Check we have error codes for all expected modules
         expected_modules = {"E01", "E02", "E03", "E04", "E05", "E99"}
-        assert module_prefixes.issuperset(expected_modules), \
-            f"Missing error codes for modules: {expected_modules - module_prefixes}"
+        assert module_prefixes.issuperset(
+            expected_modules
+        ), f"Missing error codes for modules: {expected_modules - module_prefixes}"

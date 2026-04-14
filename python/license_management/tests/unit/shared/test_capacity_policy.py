@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import time
-import pytest
 
 from license_management.shared.policies import (
     CapacityPolicyEnforcer,
@@ -25,7 +24,7 @@ class TestCapacityMetrics:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={"cpu": 50.0}
+            resource_utilization={"cpu": 50.0},
         )
 
         assert metrics.utilization_rate == 0.5
@@ -38,7 +37,7 @@ class TestCapacityMetrics:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         assert metrics.utilization_rate == 0.0
@@ -51,7 +50,7 @@ class TestCapacityMetrics:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         assert metrics.state == CapacityState.NORMAL
@@ -64,7 +63,7 @@ class TestCapacityMetrics:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         assert metrics.state == CapacityState.WARNING
@@ -77,7 +76,7 @@ class TestCapacityMetrics:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         assert metrics.state == CapacityState.CRITICAL
@@ -90,7 +89,7 @@ class TestCapacityMetrics:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         assert metrics.state == CapacityState.OVERLOADED
@@ -103,7 +102,7 @@ class TestCapacityMetrics:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         assert metrics.can_accept_load(5)
@@ -117,7 +116,7 @@ class TestCapacityMetrics:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         assert metrics.can_accept_load(1)
@@ -148,7 +147,7 @@ class TestCapacityPolicyEnforcer:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         enforcer.record_metrics(metrics)
@@ -177,7 +176,7 @@ class TestCapacityPolicyEnforcer:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         enforcer.record_metrics(metrics)
@@ -189,9 +188,7 @@ class TestCapacityPolicyEnforcer:
 
     def test_capacity_request_rejection_insufficient_capacity(self) -> None:
         """Test capacity request rejection with insufficient capacity."""
-        config = CapacityPolicyConfig(
-            max_expansion_factor=1.0  # No expansion allowed
-        )
+        config = CapacityPolicyConfig(max_expansion_factor=1.0)  # No expansion allowed
         enforcer = CapacityPolicyEnforcer(config)
 
         metrics = CapacityMetrics(
@@ -200,7 +197,7 @@ class TestCapacityPolicyEnforcer:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         enforcer.record_metrics(metrics)
@@ -222,7 +219,7 @@ class TestCapacityPolicyEnforcer:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         enforcer.record_metrics(metrics)
@@ -247,7 +244,7 @@ class TestCapacityPolicyEnforcer:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={"cpu": 50.0, "memory": 40.0}
+            resource_utilization={"cpu": 50.0, "memory": 40.0},
         )
 
         enforcer.record_metrics(metrics)
@@ -274,7 +271,7 @@ class TestCapacityPolicyEnforcer:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=old_time,
-            resource_utilization={}
+            resource_utilization={},
         )
 
         enforcer.record_metrics(old_metrics)
@@ -287,7 +284,7 @@ class TestCapacityPolicyEnforcer:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         enforcer.record_metrics(current_metrics)
@@ -300,10 +297,7 @@ class TestCapacityPolicyEnforcer:
 
     def test_capacity_limit_max_expansion(self) -> None:
         """Test that capacity doesn't exceed max expansion factor."""
-        config = CapacityPolicyConfig(
-            base_capacity=20,
-            max_expansion_factor=1.5
-        )
+        config = CapacityPolicyConfig(base_capacity=20, max_expansion_factor=1.5)
         enforcer = CapacityPolicyEnforcer(config)
 
         # Try to expand beyond max capacity
@@ -313,7 +307,7 @@ class TestCapacityPolicyEnforcer:
             warning_threshold=80,
             critical_threshold=95,
             timestamp=time.time(),
-            resource_utilization={}
+            resource_utilization={},
         )
 
         enforcer.record_metrics(metrics)
@@ -345,7 +339,7 @@ class TestCapacityPolicyConfig:
             warning_threshold=70,
             critical_threshold=90,
             max_expansion_factor=1.5,
-            expansion_step_size=10
+            expansion_step_size=10,
         )
 
         assert config.base_capacity == 30

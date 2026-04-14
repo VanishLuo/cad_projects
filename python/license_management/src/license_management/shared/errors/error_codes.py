@@ -96,7 +96,7 @@ class ValidationError(LicenseManagementError):
         super().__init__(
             error_code=ErrorCode.E011001,
             message=message,
-            context={"field": field, "value": value} if field or value else None
+            context={"field": field, "value": value} if field or value else None,
         )
 
 
@@ -107,7 +107,7 @@ class DuplicateLicenseError(LicenseManagementError):
         super().__init__(
             error_code=ErrorCode.E011003,
             message=f"Duplicate license detected: {license_id}",
-            context={"license_id": license_id}
+            context={"license_id": license_id},
         )
 
 
@@ -118,7 +118,7 @@ class ImportError(LicenseManagementError):
         super().__init__(
             error_code=ErrorCode.E021001,
             message=f"Import operation failed{f': {reason}' if reason else ''}",
-            context={"file_path": file_path} if file_path else None
+            context={"file_path": file_path} if file_path else None,
         )
 
 
@@ -129,7 +129,7 @@ class SSHConnectionError(LicenseManagementError):
         super().__init__(
             error_code=ErrorCode.E041001,
             message=f"SSH connection to {host} failed{f': {reason}' if reason else ''}",
-            context={"host": host}
+            context={"host": host},
         )
 
 
@@ -144,8 +144,8 @@ class ProviderCommandError(LicenseManagementError):
                 "provider": provider,
                 "command": command,
                 "exit_code": exit_code,
-                "stderr": stderr
-            }
+                "stderr": stderr,
+            },
         )
 
 
@@ -165,7 +165,7 @@ def get_error_category(error_code: ErrorCode) -> str:
         "E03": "Infrastructure",
         "E04": "Adapter",
         "E05": "GUI",
-        "E99": "System"
+        "E99": "System",
     }
     return categories.get(prefix, "Unknown")
 
