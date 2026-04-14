@@ -126,12 +126,13 @@ class CapacityPolicyEnforcer:
             can_expand = self._can_expand_capacity(current_metrics)
 
             if can_expand:
+                previous_capacity = self.current_capacity
                 new_capacity = self._expand_capacity(requested_capacity, current_metrics)
                 return {
                     "approved": True,
                     "reason": "Capacity expanded to accommodate request",
                     "new_capacity": new_capacity,
-                    "previous_capacity": self.current_capacity,
+                    "previous_capacity": previous_capacity,
                 }
             else:
                 return {

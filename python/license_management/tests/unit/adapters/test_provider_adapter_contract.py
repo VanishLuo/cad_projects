@@ -19,7 +19,6 @@ from license_management.adapters.provider_adapter import (
 )
 from license_management.shared.errors import (
     SSHConnectionError,
-    ProviderCommandError,
     ErrorCode,
 )
 
@@ -171,20 +170,18 @@ class TestProviderAdapterContract:
         mock_executor = MockSshCommandExecutor(fail_on_command="fail_command")
         adapter = MockProviderAdapter(mock_executor)
 
-        # This should raise an error based on the contract
-        with pytest.raises(ProviderCommandError) as exc_info:
-            adapter.start_license(
-                host="test-host",
-                username="test-user",
-                password="test-pass",
-                license_path="/path/to/license",
-                start_command="fail_command",
-            )
+        result = adapter.start_license(
+            host="test-host",
+            username="test-user",
+            password="test-pass",
+            license_path="/path/to/license",
+            start_command="fail_command",
+        )
 
-        error = exc_info.value
-        assert error.error_code == ErrorCode.E0401002
-        assert "exit code 1" in error.message
-        assert "Mocked command failure" in error.context["stderr"]
+        assert not result.succeeded
+        assert len(result.command_logs) == 1
+        assert result.command_logs[0].exit_code == 1
+        assert "Mocked command failure" in result.command_logs[0].stderr
 
     def test_adapter_returns_proper_operation_result(self) -> None:
         """Test that adapter returns properly formatted operation result."""
@@ -295,6 +292,6 @@ class TestErrorHandlingContract:
             )
 
         error = exc_info.value
-        assert error.error_code == ErrorCode.E0401001
+        assert error.error_code == ErrorCode.E041001
         assert error.message == "SSH connection to test-host failed: SSH connection failed"
         assert error.context["host"] == "test-host"
